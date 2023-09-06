@@ -24,7 +24,8 @@ if not hecateBuild.is_dir() : # We expect that this is library path
     hecateBuild  = hecate_dir
 
 libpath = hecateBuild / "lib"
-lw = ctypes.CDLL(libpath / "libSEAL_HEVM.so")
+# lw = ctypes.CDLL(libpath / "libSEAL_HEVM.so")
+lw = ctypes.CDLL(libpath / "libHEAAN_HEVM.so")
 os.environ['PATH'] = str(libpath) + os.pathsep + os.environ['PATH']
 
 
@@ -65,10 +66,11 @@ lw.setDebug.argtypes = [ctypes.c_void_p, ctypes.c_bool]
 
 
 class HEVM : 
-    def __init__ (self, path = str((Path.home() / ".hevm" / "seal").absolute()) , option= "full") : 
+    def __init__ (self, path = str((Path.home() / ".hevm" / "heaan").absolute()) , option= "full") : 
         self.option = option
         if not Path(path).is_dir() : 
-            print ("Press Any key to generate SEAL files (or just kill with ctrl+c)")
+            # print ("Press Any key to generate SEAL files (or just kill with ctrl+c)")
+            print ("Press Any key to generate HEAAN files (or just kill with ctrl+c)")
             input()
             Path(path).mkdir(parents=True)
             lw.create_context(path.encode('utf-8'))
@@ -113,8 +115,8 @@ class HEVM :
 
 
     def getOutput (self) : 
-        result = np.zeros( (self.reslen, 1 << 14), dtype=np.float64)
-        data = np.zeros(  1 << 14, dtype=np.float64)
+        result = np.zeros( (self.reslen, 1 << 16), dtype=np.float64)
+        data = np.zeros(  1 << 16, dtype=np.float64)
         for i in range(self.reslen) :
             # carr = npcl.as_ctypes(data) 
             carr =  data.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
@@ -123,10 +125,5 @@ class HEVM :
             result[i] = data
 
         return result
-
-
-
-
-
 
 

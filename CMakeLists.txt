@@ -58,6 +58,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # PACKAGE SETTING
 find_package(MLIR REQUIRED CONFIG)
 find_package(SEAL 4.0 REQUIRED CONFIG)
+find_package(HEaaN REQUIRED CONFIG)
+find_package(OpenMP)
 
 # MLIR SETTING
 
@@ -74,6 +76,9 @@ include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_BINARY_DIR}/include)
+include_directories(${PROTOBUF_INCLUDE_DIR})
+include_directories(${HEAAN_INCLUDE_DIR})
+
 link_directories(${LLVM_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
 
@@ -92,5 +97,5 @@ add_subdirectory (include/hecate)
 add_subdirectory (lib)
 add_subdirectory (tools)
 
-
+get_target_property(HEAAN_INCLUDE_DIR HEaaN::HEaaN INTERFACE_INCLUDE_DIRECTORIES)
 
