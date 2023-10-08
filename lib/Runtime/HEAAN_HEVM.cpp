@@ -1,13 +1,12 @@
+#include <HEaaN/Context.hpp>
+#include <HEaaN/device/Device.hpp>
 #include <cassert>
 #include <fstream>
 #include <iostream>
 
-#include <map>
-/* #include <seal/encryptionparams.h> */
-/* #include <seal/galoiskeys.h> */
-/* #include <seal/seal.h> */
 #include <HEaaN/HEaaN.hpp>
 #include <HEaaN/ParameterPreset.hpp>
+#include <map>
 
 #include <type_traits>
 #include <vector>
@@ -32,7 +31,6 @@ struct HEAAN_HEVM {
   std::vector<double> scalep;
   std::map<uint64_t, HEaaN::Plaintext> upscale_const;
 
-  /* std::unique_ptr<HEaaN::Context> context; */
   HEaaN::Context context;
   std::unique_ptr<HEaaN::KeyPack> keypack;
   std::unique_ptr<HEaaN::SecretKey> seckey;
@@ -46,6 +44,7 @@ struct HEAAN_HEVM {
   static const int L = 16;
 
   bool debug = false;
+  bool togpu = false;
 
   static void create_context(char *dir) {
 
@@ -81,6 +80,13 @@ struct HEAAN_HEVM {
     endecoder = std::make_unique<HEaaN::EnDecoder>(context);
     evaluator = std::make_unique<HEaaN::HomEvaluator>(context, *keypack);
     bootstrapper = std::make_unique<HEaaN::Bootstrapper>(*evaluator);
+    if (togpu) {
+      seckey->to(HEaaN::getCurrentCudaDevice());
+      keypack->to(HEaaN::getCurrentCudaDevice());
+      bootstrapper->loadBootConstants(HEaaN::getLogFullSlots(context),
+                                      HEaaN::getCurrentCudaDevice());
+      /* HEaaN::setUVM(HEaaN::getCurrentCudaDevice(), true); */
+    }
   }
 
   void loadClient(char *dir) {
@@ -168,7 +174,6 @@ struct HEAAN_HEVM {
   }
 
   void preprocess() {
-
     std::vector<double> identity(1LL << (N - 1), 1.0);
     for (HEVMOperation &op : ops) {
       if (op.opcode == 0) {
@@ -190,6 +195,8 @@ struct HEAAN_HEVM {
       datas[i].real(src[i % src.size()]);
       datas[i].imag(0);
     }
+    if (togpu)
+      datas.to(HEaaN::getCurrentCudaDevice());
     dst = endecoder->encode(datas, level, std::pow(2.0, scale));
     return;
   }
@@ -236,15 +243,13 @@ struct HEAAN_HEVM {
   void addcc(int16_t dst, int16_t lhs, int16_t rhs) {
     if (debug)
       std::cout << scalec[lhs] << " " << scalec[rhs] << std::endl;
-    scalec[dst] = (scalec[rhs] > scalec[lhs]) ? scalec[rhs] : scalec[lhs];
-    /* scalec[dst] = scalec[lhs]; */
+    scalec[dst] = scalec[lhs];
     evaluator->add(ciphers[lhs], ciphers[rhs], ciphers[dst]);
   }
   void addcp(int16_t dst, int16_t lhs, int16_t rhs) {
     if (debug)
       std::cout << scalec[lhs] << " " << scalep[rhs] << std::endl;
-    scalec[dst] = (scalep[rhs] > scalec[lhs]) ? scalep[rhs] : scalec[lhs];
-    /* scalec[dst] = scalec[lhs]; */
+    scalec[dst] = scalec[lhs];
     evaluator->add(ciphers[lhs], plains[rhs], ciphers[dst]);
   }
   void mulcc(int16_t dst, int16_t lhs, int16_t rhs) {
@@ -276,7 +281,8 @@ struct HEAAN_HEVM {
         std::cout << std::endl;
         std::cout << std::oct << i++ << " " << std::dec << j++ << std::endl;
         std::cout << "opcode [" << op.opcode << "], dst [" << op.dst
-                  << "], lhs [" << op.lhs << "], rhs [" << op.rhs << std::endl;
+                  << "], lhs [" << op.lhs << "], rhs [" << op.rhs << "]"
+                  << std::endl;
       }
       switch (op.opcode) {
       case 0: { // Encode
@@ -324,7 +330,7 @@ struct HEAAN_HEVM {
         break;
       }
       default: {
-        assert(0 && "Invalid opcode");
+        /* assert(0 && "Invalid opcode"); */
         break;
       }
       }
@@ -381,6 +387,8 @@ void decrypt(void *vm, int64_t i, double *dat) {
   hevm->decryptor->decrypt(hevm->ciphers[i], *hevm->seckey, ptxt);
   HEaaN::Message msg =
       hevm->endecoder->decode(ptxt, std::pow(2.0, hevm->scalec[i]));
+  if (hevm->togpu)
+    msg.to(HEaaN::getDefaultDevice());
   for (int i = 0; i < (1LL << (HEAAN_HEVM::N - 1)); i++) {
     /* for (size_t j = 0; j < msg.getSize(); j++) */
     dat[i] = msg[i].real();
