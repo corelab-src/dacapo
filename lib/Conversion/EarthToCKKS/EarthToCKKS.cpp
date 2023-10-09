@@ -107,6 +107,17 @@ struct RescaleOpLowering
                   ConversionPatternRewriter &rewriter) const override;
 };
 
+struct BootstrapOpLowering
+    : public OpConversionPattern<hecate::earth::BootstrapOp> {
+  using OpConversionPattern<hecate::earth::BootstrapOp>::ConversionPattern;
+  BootstrapOpLowering(mlir::TypeConverter &converter, MLIRContext *ctxt)
+      : OpConversionPattern<hecate::earth::BootstrapOp>(converter, ctxt) {}
+
+  LogicalResult
+  matchAndRewrite(hecate::earth::BootstrapOp op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override;
+};
+
 struct ModswitchOpLowering
     : public OpConversionPattern<hecate::earth::ModswitchOp> {
   using OpConversionPattern<hecate::earth::ModswitchOp>::ConversionPattern;
@@ -286,6 +297,23 @@ LogicalResult ModswitchOpLowering::matchAndRewrite(
 
   rewriter.replaceOpWithNewOp<ckks::ModswitchCOp>(op, dst, adaptor.getValue(),
                                                   adaptor.getDownFactor());
+  return success();
+}
+
+//===----------------------------------------------------------------------===//
+// BootstrapOpLowering
+//===----------------------------------------------------------------------===//
+
+LogicalResult BootstrapOpLowering::matchAndRewrite(
+    hecate::earth::BootstrapOp op, OpAdaptor adaptor,
+    ConversionPatternRewriter &rewriter) const {
+  auto elemType = getTypeConverter()
+                      ->convertType(op.getType().getElementType())
+                      .dyn_cast<ckks::PolyTypeInterface>();
+  auto dst = rewriter.create<tensor::EmptyOp>(
+      op.getLoc(), op.getType().getShape(), elemType);
+
+  rewriter.replaceOpWithNewOp<ckks::BootstrapCOp>(op, dst, adaptor.getValue());
   return success();
 }
 

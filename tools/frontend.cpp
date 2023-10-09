@@ -156,6 +156,8 @@ valueID createUnary(Context *ctxt, size_t opcode, valueID lhs, char *filename,
   auto &&source = valueMap[lhs];
   switch (opcode) {
   case 0: {
+    auto res = builder.create<hecate::earth::BootstrapOp>(location, source);
+    valueMap.push_back(res);
     break;
   }
   case 13: {

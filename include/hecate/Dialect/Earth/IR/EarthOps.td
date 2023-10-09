@@ -247,7 +247,11 @@ def UpscaleOp : Unary_Earth_Op<"upscale"> {
   let results = (outs HETensor);
   let hasCanonicalizer = 1;
 }
-
+def BootstrapOp : Unary_Earth_Op<"bootstrap"> {
+  let arguments = (ins HETensor:$value);
+  let results = (outs HETensor);
+  let hasCanonicalizer = 1;
+}
 def ApplyScheduleOp : Unary_Earth_Op<"apply_schedule", [SameOperandsAndResultType]> {
   let arguments = (ins HETensor:$value, I64Attr:$scaleFactor, I64Attr:$levelFactor);
   let results = (outs HETensor);
