@@ -68,6 +68,9 @@ struct EarlyModswitchPass
           oop.setDownFactor(oop.getDownFactor() + minModFactor);
           oop.getResult().setType(oop.getScaleType().switchLevel(
               oop.getRescaleLevel() + minModFactor));
+        } else if (auto oop = dyn_cast<hecate::earth::BootstrapOp>(
+                       op.getOperation())) {
+          continue;
         } else {
           // Modswitch is moved to the opreands
           for (int i = 0; i < op->getNumOperands(); i++) {

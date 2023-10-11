@@ -216,6 +216,7 @@ def RotateOp : Unary_Earth_Op<"rotate", [SameOperandsAndResultType]> {
   }];
   let hasCanonicalizer = 1;
 }
+
 def NegateOp : Unary_Earth_Op<"negate", [SameOperandsAndResultType]> {
   let arguments = (ins HETensor:$value);
   code extraClassDeclaration = [{
@@ -229,6 +230,42 @@ def NegateOp : Unary_Earth_Op<"negate", [SameOperandsAndResultType]> {
       }
     }
   }];
+}
+
+def BootstrapOp : Unary_Earth_Op<"bootstrap"> {
+  let arguments = (ins HETensor:$value);
+  let results = (outs HETensor);
+  code extraClassDeclaration = [{
+    void processOperandsEVA(int64_t param);
+    void processResultsEVA(int64_t param);
+  }];
+  code extraClassDefinition = unaryClassDefinition # [{
+    void $cppClass::processOperandsEVA(int64_t param){
+      if (getOperandScale(0) + hecate::earth::EarthDialect::rescalingFactor * getOperandLevel(0) < (hecate::earth::EarthDialect::bootstrapLevelUpperBound + 1) * hecate::earth::EarthDialect::rescalingFactor ){
+        OpBuilder builder(getOperation());
+        if (getOperandScale(0) < hecate::earth::EarthDialect::rescalingFactor ){
+          getOperation()->setOperand(0, builder.create<hecate::earth::UpscaleOp>( getLoc(), getValue(), hecate::earth::EarthDialect::rescalingFactor - getOperandScale(0)));
+        }
+
+        else if(getOperandScale(0) > hecate::earth::EarthDialect::rescalingFactor){
+          int overLevel = (getOperandScale(0) - 1)/hecate::earth::EarthDialect::rescalingFactor;
+          for(int j = overLevel; j >0; j--){
+            getOperation()->setOperand(0, builder.create<hecate::earth::UpscaleOp>( getLoc(), getValue(), (hecate::earth::EarthDialect::rescalingFactor * (j + 1) - getOperandScale(0))));
+            getOperation()->setOperand(0, builder.create<hecate::earth::RescaleOp>( getLoc(), getValue()));
+          }
+        }
+      }
+    }
+    void $cppClass::processResultsEVA(int64_t param){
+      getResult().setType(
+          getScaleType().switchScale(getOperandScale(0)));
+      getResult().setType(
+          getScaleType().switchLevel(0));
+    }
+
+
+  }];
+  let hasCanonicalizer = 1;
 }
 
 /* ######## Scale Management Operations ####### */
@@ -247,11 +284,7 @@ def UpscaleOp : Unary_Earth_Op<"upscale"> {
   let results = (outs HETensor);
   let hasCanonicalizer = 1;
 }
-def BootstrapOp : Unary_Earth_Op<"bootstrap"> {
-  let arguments = (ins HETensor:$value);
-  let results = (outs HETensor);
-  let hasCanonicalizer = 1;
-}
+
 def ApplyScheduleOp : Unary_Earth_Op<"apply_schedule", [SameOperandsAndResultType]> {
   let arguments = (ins HETensor:$value, I64Attr:$scaleFactor, I64Attr:$levelFactor);
   let results = (outs HETensor);

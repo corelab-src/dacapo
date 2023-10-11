@@ -390,6 +390,7 @@ void hecate::earth::populateEarthToCKKSConversionPatterns(
     RescaleOpLowering,
     UpscaleOpLowering,
     ModswitchOpLowering,
+    BootstrapOpLowering,
     ReturnOpLowering
   >(converter, ctxt);
 

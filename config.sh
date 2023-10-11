@@ -6,6 +6,7 @@ alias hopt-debug=$HECATE/build-debug/bin/hecate-opt
 mkdir -p $HECATE/examples/traced
 mkdir -p $HECATE/examples/optimized/eva
 mkdir -p $HECATE/examples/optimized/elasm
+mkdir -p $HECATE/examples/optimized/dacapo
 
 build-hopt()(
 cd $HECATE/build
@@ -41,11 +42,11 @@ hopt-debug --$1 --ckks-config="$HECATE/config.json" --waterline=$2 --enable-debu
 }
 
 hopt-timing-only(){
-hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2  $HECATE/examples/traced/$3.mlir --mlir-timing -o $HECATE/examples/optimized/$1/$3.$2.mlir
+hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2 $HECATE/examples/traced/$3.mlir --mlir-timing -o $HECATE/examples/optimized/$1/$3.$2.mlir
 }
 
 hopt-silent(){
-hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2  $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
+hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
 }
 
 hc-opt-test() {

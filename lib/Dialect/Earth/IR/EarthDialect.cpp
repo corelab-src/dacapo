@@ -254,7 +254,7 @@ void hecate::earth::UpscaleOp::getCanonicalizationPatterns(
 
 void hecate::earth::BootstrapOp::getCanonicalizationPatterns(
     RewritePatternSet &patterns, MLIRContext *context) {
-  /* patterns.add<BootstrapPattern>(context); */
+  /* patterns.add<exceedBootstrapBound>(context); */
 }
 
 ::mlir::LogicalResult hecate::earth::BootstrapOp::inferReturnTypes(
@@ -265,16 +265,10 @@ void hecate::earth::BootstrapOp::getCanonicalizationPatterns(
   auto op = BootstrapOpAdaptor(operands, attributes, regions);
   auto lScale = earth::getScaleType(op.getValue());
   // accumulated scale > maximum scale limit
-  if (lScale.getScale() +
-          lScale.getLevel() * hecate::earth::EarthDialect::rescalingFactor >
-      (hecate::earth::EarthDialect::bootstrapLevelUpperBound + 1) *
-          hecate::earth::EarthDialect::rescalingFactor)
-    return ::mlir::failure();
-  else {
-    inferredReturnTypes.push_back(lScale.switchLevel(0).switchScale(
-        hecate::earth::EarthDialect::rescalingFactor));
-    return ::mlir::success();
-  }
+  /* inferredReturnTypes.push_back(lScale.switchLevel(0).switchScale( */
+  /*     hecate::earth::EarthDialect::rescalingFactor)); */
+  inferredReturnTypes.push_back(lScale.switchLevel(0));
+  return ::mlir::success();
 }
 
 void hecate::earth::AddOp::getCanonicalizationPatterns(
