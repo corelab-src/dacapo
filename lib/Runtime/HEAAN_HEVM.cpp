@@ -55,7 +55,7 @@ struct HEAAN_HEVM {
   };
 
   bool debug = false;
-  bool togpu = false;
+  bool togpu = true;
 
   static void create_context(char *dir) {
 
@@ -93,20 +93,17 @@ struct HEAAN_HEVM {
         keypack->loadLeftRotKey(offset);
       }
     }
-    if (togpu) {
-      seckey->to(HEaaN::getCurrentCudaDevice());
-      keypack->to(HEaaN::getCurrentCudaDevice());
-      bootstrapper->loadBootConstants(HEaaN::getLogFullSlots(context),
-                                      HEaaN::getCurrentCudaDevice());
-      /* HEaaN::setUVM(HEaaN::getCurrentCudaDevice(), true); */
-    }
     encryptor = std::make_unique<HEaaN::Encryptor>(context);
     decryptor = std::make_unique<HEaaN::Decryptor>(context);
     endecoder = std::make_unique<HEaaN::EnDecoder>(context);
     evaluator = std::make_unique<HEaaN::HomEvaluator>(context, *keypack);
     bootstrapper = std::make_unique<HEaaN::Bootstrapper>(*evaluator);
-    bootstrapper->loadBootConstants(HEaaN::getLogFullSlots(context),
-                                    HEaaN::getDefaultDevice());
+    if (togpu) {
+      seckey->to(HEaaN::getCurrentCudaDevice());
+      keypack->to(HEaaN::getCurrentCudaDevice());
+      bootstrapper->loadBootConstants(HEaaN::getLogFullSlots(context),
+                                      HEaaN::getCurrentCudaDevice());
+    }
   }
 
   void loadClient(char *dir) {
@@ -194,7 +191,6 @@ struct HEAAN_HEVM {
   }
 
   void preprocess() {
-    /* HEaaN::u64 log_slot = N - 1; */
     std::vector<double> identity(1LL << (N - 1), 1.0);
     for (HEVMOperation &op : ops) {
       if (op.opcode == 0) {
@@ -202,12 +198,7 @@ struct HEAAN_HEVM {
                         op.lhs == ((unsigned short)-1) ? identity
                                                        : buffer[op.lhs],
                         op.rhs >> 8, op.rhs & 0xFF);
-        /* msgs.emplace_back(log_slot); */
-        /* auto src = op.lhs == ((unsigned short)-1) ? identity :
-         * buffer[op.lhs]; */
-        /* to_msg(op.dst, src); */
         scalep[op.dst] = op.rhs & 0xFF;
-        /* msgMap[&src[0]] = op.dst; */
       }
     }
   }
@@ -235,8 +226,6 @@ struct HEAAN_HEVM {
     if (togpu)
       datas.to(HEaaN::getCurrentCudaDevice());
     dst = endecoder->encode(datas, level, std::pow(2.0, scale));
-    /* dst = endecoder->encode(msgs[msgMap[gc]], level, std::pow(2.0, scale));
-     */
     return;
   }
 
