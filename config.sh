@@ -34,11 +34,11 @@ hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2 --enable-debug-prin
 }
 
 hopt-debug-print(){
-hopt-debug --$1 --ckks-config="$HECATE/config.json" --waterline=$2 --enable-debug-printer $HECATE/examples/traced/$3.mlir --mlir-print-debuginfo --mlir-pretty-debuginfo --mlir-print-local-scope --mlir-disable-threading  --mlir-timing --mlir-print-ir-after-failure
+hopt-debug --$1 --ckks-config="$HECATE/config.json" --waterline=$2 --enable-debug-printer $HECATE/examples/traced/$3.mlir --mlir-print-debuginfo --mlir-pretty-debuginfo --mlir-print-local-scope --mlir-disable-threading  --mlir-timing --mlir-print-ir-after-failure -o $HECATE/examples/optimized/$1/$3.$2.mlir
 }
 
 hopt-debug-print-all(){
-hopt-debug --$1 --ckks-config="$HECATE/config.json" --waterline=$2 --enable-debug-printer $HECATE/examples/traced/$3.mlir --mlir-print-debuginfo --mlir-pretty-debuginfo --mlir-print-local-scope --mlir-disable-threading  --mlir-timing --mlir-print-ir-after-failure   --debug
+hopt-debug --$1 --ckks-config="$HECATE/config.json" --waterline=$2 --enable-debug-printer $HECATE/examples/traced/$3.mlir --mlir-print-debuginfo --mlir-pretty-debuginfo --mlir-print-local-scope --mlir-disable-threading  --mlir-timing --mlir-print-ir-after-failure --debug -o $HECATE/examples/optimized/$1/$3.$2.mlir
 }
 
 hopt-timing-only(){

@@ -23,6 +23,7 @@ using namespace mlir;
 #include "hecate/Dialect/CKKS/IR/CKKSOps.cpp.inc"
 
 #include "hecate/Dialect/CKKS/IR/CKKSOpsDialect.cpp.inc"
+#include "hecate/Dialect/Earth/IR/EarthOps.h"
 
 /* #include "hecate/Dialect/CKKS/IR/EarthCanonicalizerPattern.inc" */
 
@@ -126,6 +127,25 @@ void hecate::ckks::CKKSDialect::initialize() {
   auto lPoly = ckks::getPolyType(op.getSrc());
   if (dPoly.getNumPoly() == lPoly.getNumPoly() &&
       (dPoly.getLevel() == lPoly.getLevel() - op.getDownFactor() ||
+       dPoly.getLevel() == 0)) {
+    inferredReturnTypes.push_back(op.getDst().getType());
+    return ::mlir::success();
+  } else {
+    return ::mlir::failure();
+  }
+}
+
+::mlir::LogicalResult hecate::ckks::BootstrapCOp::inferReturnTypes(
+    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
+    ::mlir::RegionRange regions,
+    ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
+  auto op = BootstrapCOpAdaptor(operands, attributes, regions);
+  auto dPoly = ckks::getPolyType(op.getDst());
+  auto lPoly = ckks::getPolyType(op.getSrc());
+  if (dPoly.getNumPoly() == lPoly.getNumPoly() &&
+      (dPoly.getLevel() ==
+           hecate::earth::EarthDialect::bootstrapLevelUpperBound ||
        dPoly.getLevel() == 0)) {
     inferredReturnTypes.push_back(op.getDst().getType());
     return ::mlir::success();

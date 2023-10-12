@@ -160,7 +160,8 @@ ConstantOpLowering::matchAndRewrite(hecate::earth::ConstantOp op,
 
   rewriter.replaceOpWithNewOp<ckks::EncodeOp>(
       op, dst, adaptor.getValue().dyn_cast<IntegerAttr>().getInt(),
-      tt.getScale(), init_level - tt.getLevel());
+      tt.getScale(),
+      hecate::earth::EarthDialect::bootstrapLevelUpperBound - tt.getLevel());
 
   return success();
 }
@@ -387,10 +388,10 @@ void hecate::earth::populateEarthToCKKSConversionPatterns(
     AddOpLowering,
     NegateOpLowering,
     RotateOpLowering,
+    BootstrapOpLowering,
     RescaleOpLowering,
     UpscaleOpLowering,
     ModswitchOpLowering,
-    BootstrapOpLowering,
     ReturnOpLowering
   >(converter, ctxt);
 

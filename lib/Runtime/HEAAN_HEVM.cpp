@@ -81,6 +81,7 @@ struct HEAAN_HEVM {
   }
 
   void loadHEAAN(char *dir) {
+    HEaaN::setUVM(HEaaN::getCurrentCudaDevice(), false);
     auto strdir = std::string(dir);
     {
       context = HEaaN::makeContextFromFile(strdir + "/context.heaan", {0});

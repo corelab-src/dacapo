@@ -44,8 +44,14 @@ struct EarlyModswitchPass
     auto &&bb = func.getBody().getBlocks().front();
     for (auto iter = bb.rbegin(); iter != bb.rend(); ++iter) {
       if (auto op = dyn_cast<hecate::earth::HEScaleOpInterface>(*iter)) {
-        // Gather the users and finds the minimum "downFactor"
 
+        // Skip the bootstrapping operation
+        if (auto oop =
+                dyn_cast<hecate::earth::BootstrapOp>(op.getOperation())) {
+          continue; // Go to next operation
+        }
+
+        // Gather the users and finds the minimum "downFactor"
         uint64_t minModFactor = -1;
         for (auto &&oper : op->getResult(0).getUses()) {
           if (auto oop =
@@ -68,11 +74,8 @@ struct EarlyModswitchPass
           oop.setDownFactor(oop.getDownFactor() + minModFactor);
           oop.getResult().setType(oop.getScaleType().switchLevel(
               oop.getRescaleLevel() + minModFactor));
-        } else if (auto oop = dyn_cast<hecate::earth::BootstrapOp>(
-                       op.getOperation())) {
-          continue;
         } else {
-          // Modswitch is moved to the opreands
+          // Modswitch is moved to the operands
           for (int i = 0; i < op->getNumOperands(); i++) {
             auto oper = op->getOperand(i);
             builder.setInsertionPoint(op);

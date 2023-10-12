@@ -10,6 +10,8 @@
 
 namespace hecate {
 namespace earth {
+void refineLevel(mlir::OpBuilder builder, mlir::Operation *op,
+                 int64_t output_val, int64_t min_level);
 
 void refineReturnValues(mlir::func::FuncOp func, mlir::OpBuilder builder,
                         llvm::SmallVector<mlir::Type, 4> inputTypes,
