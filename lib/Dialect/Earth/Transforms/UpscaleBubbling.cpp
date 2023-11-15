@@ -40,6 +40,11 @@ struct UpscaleBubblingPass
         if (op.isConsume() && !op.isSingle()) {
           continue;
         }
+        // Skip the bootstrapping operation
+        if (auto oop =
+                dyn_cast<hecate::earth::BootstrapOp>(op.getOperation())) {
+          continue; // Go to next operation
+        }
 
         uint64_t minUpFactor = -1;
         for (auto &&oper : op->getResult(0).getUses()) {
