@@ -152,14 +152,14 @@ def UpscaleCOp : CKKS_Op<"upscalec", [SameOperandsAndResultType]> {
 }
 
 def BootstrapCOp : CKKS_Op<"bootstrapc", [SameOperandsAndResultShape]> {
-  let arguments = (ins PolyTensor:$dst, PolyTensor:$src);
+  let arguments = (ins PolyTensor:$dst, PolyTensor:$src, I64Attr:$level);
   code extraClassDefinition = arithClassDefinition # [{
     HEVMOperation $cppClass::getHEVMOperation (llvm::DenseMap<mlir::Value, int64_t> plainMap, llvm::DenseMap<mlir::Value, int64_t> cipherMap){
       HEVMOperation op;
       op.opcode = 10;
       op.dst = cipherMap[getDst()];
       op.lhs = cipherMap[getSrc()];
-      op.rhs = 0;
+      op.rhs = getLevel();
       return op;
     }
   }];

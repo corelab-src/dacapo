@@ -1,5 +1,6 @@
 #include <HEaaN/Context.hpp>
 #include <HEaaN/Message.hpp>
+#include <HEaaN/device/CudaTools.hpp>
 #include <HEaaN/device/Device.hpp>
 #include <cassert>
 #include <fstream>
@@ -30,6 +31,7 @@ struct HEAAN_HEVM {
   std::vector<double> scalec;
   std::vector<HEaaN::Plaintext> plains;
   std::vector<double> scalep;
+  std::vector<uint64_t> levelp;
   std::vector<HEaaN::Message> msgs;
   std::map<double *, int> msgMap;
   std::map<uint64_t, HEaaN::Plaintext> upscale_const;
@@ -157,10 +159,22 @@ struct HEAAN_HEVM {
     iff.read((char *)ops.data(), ops.size() * sizeof(HEVMOperation));
 
     ciphers.resize(config.num_ctxt_buffer, HEaaN::Ciphertext(context));
-    plains.resize(config.num_ptxt_buffer, HEaaN::Plaintext(context));
+    /* plains.resize(config.num_ptxt_buffer, HEaaN::Plaintext(context)); */
+    if (togpu) {
+      for (auto &&cipher : ciphers)
+        cipher.to(HEaaN::getCurrentCudaDevice());
+    }
 
+    HEaaN::u64 log_slot = N - 1;
+    HEaaN::Message datas(log_slot, 0.0);
+    msgs.resize(config.num_ptxt_buffer, datas);
+    plains.resize(1, HEaaN::Plaintext(context));
+    if (togpu) {
+      plains[0].to(HEaaN::getCurrentCudaDevice());
+    }
     scalec.resize(config.num_ctxt_buffer);
     scalep.resize(config.num_ptxt_buffer);
+    levelp.resize(config.num_ptxt_buffer);
   }
 
   void loadHeader(std::istream &iff) {
@@ -195,10 +209,13 @@ struct HEAAN_HEVM {
     std::vector<double> identity(1LL << (N - 1), 1.0);
     for (HEVMOperation &op : ops) {
       if (op.opcode == 0) {
-        encode_internal(plains[op.dst],
-                        op.lhs == ((unsigned short)-1) ? identity
-                                                       : buffer[op.lhs],
-                        op.rhs >> 8, op.rhs & 0xFF);
+        /* encode_internal(plains[op.dst], */
+        /*                 op.lhs == ((unsigned short)-1) ? identity */
+        /* : buffer[op.lhs], */
+        /* op.rhs >> 8, op.rhs & 0xFF); */
+        to_msg(op.dst,
+               op.lhs == ((unsigned short)-1) ? identity : buffer[op.lhs]);
+        levelp[op.dst] = op.rhs >> 8;
         scalep[op.dst] = op.rhs & 0xFF;
       }
     }
@@ -213,6 +230,13 @@ struct HEAAN_HEVM {
     if (togpu)
       msg.to(HEaaN::getCurrentCudaDevice());
     return;
+  }
+  void encode_online(int16_t dst) {
+
+    if (togpu)
+      msgs[dst].to(HEaaN::getCurrentCudaDevice());
+    plains[0] =
+        endecoder->encode(msgs[dst], levelp[dst], std::pow(2.0, scalep[dst]));
   }
 
   void encode_internal(HEaaN::Plaintext &dst, std::vector<double> src,
@@ -279,7 +303,9 @@ struct HEAAN_HEVM {
     if (debug)
       std::cout << scalec[lhs] << " " << scalep[rhs] << std::endl;
     scalec[dst] = scalec[lhs];
-    evaluator->add(ciphers[lhs], plains[rhs], ciphers[dst]);
+    encode_online(rhs);
+    /* evaluator->add(ciphers[lhs], plains[rhs], ciphers[dst]); */
+    evaluator->add(ciphers[lhs], plains[0], ciphers[dst]);
   }
   void mulcc(int16_t dst, int16_t lhs, int16_t rhs) {
     if (debug)
@@ -291,13 +317,17 @@ struct HEAAN_HEVM {
   void mulcp(int16_t dst, int16_t lhs, int16_t rhs) {
     if (debug)
       std::cout << scalec[lhs] << " " << scalep[rhs] << std::endl;
-    evaluator->multWithoutRescale(ciphers[lhs], plains[rhs], ciphers[dst]);
+    /* evaluator->multWithoutRescale(ciphers[lhs], plains[rhs], ciphers[dst]);
+     */
+    encode_online(rhs);
+    evaluator->multWithoutRescale(ciphers[lhs], plains[0], ciphers[dst]);
     ciphers[dst].setRescaleCounter(0);
     scalec[dst] = scalec[lhs] + scalep[rhs];
   }
   void bootstrap(int16_t dst, int64_t src, int8_t targetLevel) {
-    if (debug)
+    if (debug) {
       std::cout << scalec[src] << std::endl;
+    }
     bootstrapper->bootstrap(ciphers[src], ciphers[dst], targetLevel, false);
     scalec[dst] = ciphers[dst].getCurrentScaleFactor();
   }
@@ -355,6 +385,7 @@ struct HEAAN_HEVM {
         break;
       }
       case 10: { // Bootstrap
+        /* HEaaN::CudaTools::cudaDeviceSynchronize(); */
         bootstrap(op.dst, op.lhs, op.rhs);
         break;
       }

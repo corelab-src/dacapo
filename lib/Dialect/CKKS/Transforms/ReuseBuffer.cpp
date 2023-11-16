@@ -35,8 +35,8 @@ struct ReuseBufferPass
         if (auto tt = hecate::ckks::getPolyType(v->get())) {
           if (tt.getNumPoly() == 1)
             continue;
-          if (l.isDeadAfter(v->get(), op) && !garbage.empty() &&
-              v->get() != garbage.back()) {
+          if (l.isDeadAfter(v->get(), op) &&
+              (garbage.empty() || v->get() != garbage.back())) {
             garbage.push_back(v->get());
           }
         }

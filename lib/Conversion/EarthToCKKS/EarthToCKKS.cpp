@@ -313,8 +313,13 @@ LogicalResult BootstrapOpLowering::matchAndRewrite(
                       .dyn_cast<ckks::PolyTypeInterface>();
   auto dst = rewriter.create<tensor::EmptyOp>(
       op.getLoc(), op.getType().getShape(), elemType);
+  auto tt = op.getType()
+                .getElementType()
+                .dyn_cast<hecate::earth::HEScaleTypeInterface>();
 
-  rewriter.replaceOpWithNewOp<ckks::BootstrapCOp>(op, dst, adaptor.getValue());
+  rewriter.replaceOpWithNewOp<ckks::BootstrapCOp>(
+      op, dst, adaptor.getValue(),
+      hecate::earth::EarthDialect::levelUpperBound - tt.getLevel());
   return success();
 }
 
