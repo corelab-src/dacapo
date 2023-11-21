@@ -1,5 +1,6 @@
 
 import hecate as hc
+import hecate.SimFHE as sf
 import numpy as np
 
 
@@ -50,8 +51,9 @@ if __name__ == "__main__" :
 
     a_compile_type = sys.argv[1]
     a_compile_opt = int(sys.argv[2])
-    hevm = hc.HEVM()
     stem = Path(__file__).stem
+    print(sf.simulate(f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm"))
+    hevm = hc.HEVM()
     hevm.load (f"traced/_hecate_{stem}.cst", f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm")
 
     input_dat = preprocess()
