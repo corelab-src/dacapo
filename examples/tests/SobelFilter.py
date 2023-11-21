@@ -1,6 +1,6 @@
 
 import hecate as hc
-import hecate.SimFHE as sf
+import simfhe as sf
 import numpy as np
 
 

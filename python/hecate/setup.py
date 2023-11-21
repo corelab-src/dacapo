@@ -7,7 +7,7 @@ setup(
     author='yongwoo',
     author_email='dragonrain96@gmail.com',
     install_requires=['numpy'],
-    packages=['hecate', 'hecate.SimFHE'],
+    packages=find_packages(exclude=[]),
     keywords=['yongwoo', 'homomorphic encryption', 'ckks', 'hecate', 'elasm'],
     python_requires='>=3.6',
     package_data={},
