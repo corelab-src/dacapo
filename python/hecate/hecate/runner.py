@@ -100,6 +100,7 @@ class HEVM :
 
         self.arglen = lw.getArgLen(self.vm)
         self.reslen = lw.getResLen(self.vm)
+        self.hevm_path = hevm_path
 
     def run (self) : 
         lw.run(self.vm)
@@ -123,7 +124,16 @@ class HEVM :
             lw.decrypt_result(self.vm, i, carr)
             # result[i] = npcl.as_array(carr, shape= 1<<14)
             result[i] = data
-
         return result
+    
+    def printer(self, latency, rms) :
+        import re
+        bench = re.search(r"optimized/(.*)/(.*)\.(.*)\._", self.hevm_path)
+        print("opt:", bench.group(1))
+        print("benchname:", bench.group(2))
+        print("waterline:", bench.group(3))
+        print("latency:", latency)
+        print("rms:", rms)
+        print()
 
 

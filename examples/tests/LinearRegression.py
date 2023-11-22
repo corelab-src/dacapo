@@ -1,15 +1,18 @@
 
 import hecate as hc
+import simfhe as sf
 from random import *
 import numpy as np
 import sys
 from pathlib import Path
 import time
 
+seed(100)
 a_compile_type = sys.argv[1]
 a_compile_opt = int(sys.argv[2])
 
-
+stem = Path(__file__).stem
+print(sf.simulate(f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm"))
 hevm = hc.HEVM()
 stem = Path(__file__).stem
 hevm.load (f"traced/_hecate_{stem}.cst", f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm")
@@ -43,11 +46,14 @@ for i in range(epochs):
 
 hevm.setInput(0, x)
 hevm.setInput(1, y)
+hevm.run()
+hevm.setInput(0, x)
+hevm.setInput(1, y)
 timer = time.perf_counter_ns()
 hevm.run()
 timer = time.perf_counter_ns() -timer
 res = hevm.getOutput()
 rms = np.sqrt(np.mean(np.power(res[0] - W, 2) + np.power(res[1] - c, 2)))
-print (timer / pow(10,9))
-print(rms)
-
+# print (timer / pow(10,9))
+# print(rms)
+hevm.printer(timer/pow(10,9), rms)

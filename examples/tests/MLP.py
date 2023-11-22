@@ -1,5 +1,6 @@
 import hecate as hc
 import sys
+import simfhe as sf
 # import pandas as pd
 import torch
 from torchvision import datasets, transforms
@@ -59,6 +60,8 @@ if __name__ == "__main__" :
 
     a_compile_type = sys.argv[1]
     a_compile_opt = int(sys.argv[2])
+    stem = Path(__file__).stem
+    print(sf.simulate(f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm"))
     hevm = hc.HEVM()
     stem = Path(__file__).stem
     hevm.load (f"traced/_hecate_{stem}.cst", f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm")
@@ -73,5 +76,6 @@ if __name__ == "__main__" :
     res = postprocess(res)
     err = res - reference 
     rms = np.sqrt( np.sum(err*err) / res.shape[-1])
-    print (timer/ (pow(10, 9)))
-    print (rms)
+    # print (timer/ (pow(10, 9)))
+    # print (rms)
+    hevm.printer(timer/pow(10,9), rms)
