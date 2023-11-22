@@ -4,7 +4,7 @@ import re
 import inspect
 from subprocess import Popen
 from collections.abc import Iterable
-# import torch
+import torch
 
 import os
 import time
@@ -237,11 +237,12 @@ def resolveType(other):
         return Plain(np.array([other], dtype=np.float64)) #Plain([other])
     elif isinstance(other, list):
         return Plain(np.array(other, dtype=np.float64)) #Plain(other)
-    # elif isinstance(other, torch.Tensor) :
-    #     return Plain( torch.flatten(other).tolist() )
+    elif isinstance(other, torch.Tensor) :
+        return Plain( torch.flatten(other).tolist() )
     elif isinstance(other, np.ndarray):
         return Plain(other)
     else:
+        print(type(other))
         raise Exception("Cannot create compatiable type")
     """Binary-operatable expression"""
 
@@ -256,6 +257,8 @@ class Plain(Expr):
         #         len(data))(*[float(x) for x in flatten(data)])
         if not isinstance(data, np.ndarray) :
             data = np.array(data, dtype=np.float64)
+        if isinstance(data, np.ndarray) :
+            data = np.array(data.tolist(), dtype=np.float64)
          
         carr = npcl.as_ctypes(data) 
         (frame, filename, line_number, function_name, lines,
