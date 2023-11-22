@@ -241,28 +241,28 @@ def BootstrapOp : Unary_Earth_Op<"bootstrap"> {
   }];
   code extraClassDefinition = unaryClassDefinition # [{
     void $cppClass::processOperandsEVA(int64_t param){
-      if (getOperandScale(0) + hecate::earth::EarthDialect::rescalingFactor * getOperandLevel(0) < (hecate::earth::EarthDialect::bootstrapLevelUpperBound + 1) * hecate::earth::EarthDialect::rescalingFactor ){
+      if (getOperandScale(0) + hecate::earth::EarthDialect::rescalingFactor * getOperandLevel(0) < (hecate::earth::EarthDialect::bootstrapLevelUpperBound) * hecate::earth::EarthDialect::rescalingFactor ){
         OpBuilder builder(getOperation());
         if (getOperandScale(0) < hecate::earth::EarthDialect::rescalingFactor ){
           getOperation()->setOperand(0, builder.create<hecate::earth::UpscaleOp>( getLoc(), getValue(), hecate::earth::EarthDialect::rescalingFactor - getOperandScale(0)));
         }
-
         else if(getOperandScale(0) > hecate::earth::EarthDialect::rescalingFactor){
           int overLevel = (getOperandScale(0) - 1)/hecate::earth::EarthDialect::rescalingFactor;
+          getOperation()->setOperand(0, builder.create<hecate::earth::UpscaleOp>( getLoc(), getValue(), (hecate::earth::EarthDialect::rescalingFactor * (overLevel + 1) - getOperandScale(0))));
           for(int j = overLevel; j >0; j--){
-            getOperation()->setOperand(0, builder.create<hecate::earth::UpscaleOp>( getLoc(), getValue(), (hecate::earth::EarthDialect::rescalingFactor * (j + 1) - getOperandScale(0))));
             getOperation()->setOperand(0, builder.create<hecate::earth::RescaleOp>( getLoc(), getValue()));
+
           }
         }
       }
     }
+
     void $cppClass::processResultsEVA(int64_t param){
       getResult().setType(
-          getScaleType().switchScale(getOperandScale(0)));
+          getScaleType().switchScale(hecate::earth::EarthDialect::rescalingFactor));
       getResult().setType(
           getScaleType().switchLevel(0));
     }
-
 
   }];
   let hasCanonicalizer = 1;
@@ -449,8 +449,10 @@ def MulOp: Earth_Op<"mul", [Commutative]> {
 
       if (getOperandLevel(0) != getOperandLevel(1)){
         int lowerIdx = getOperandScale(0) < getOperandScale(1) ? 0 : 1;
-        getOperation()->setOperand(lowerIdx, builder.create<hecate::earth::UpscaleOp>( getLoc(), getOperand(lowerIdx), param+ hecate::earth::EarthDialect::rescalingFactor - getOperandScale(lowerIdx) ));
-        getOperation()->setOperand(lowerIdx, builder.create<hecate::earth::RescaleOp>( getLoc(), getOperand(lowerIdx)));
+        if(getOperandScale(lowerIdx) != param){
+          getOperation()->setOperand(lowerIdx, builder.create<hecate::earth::UpscaleOp>( getLoc(), getOperand(lowerIdx), param+ hecate::earth::EarthDialect::rescalingFactor - getOperandScale(lowerIdx) ));
+          getOperation()->setOperand(lowerIdx, builder.create<hecate::earth::RescaleOp>( getLoc(), getOperand(lowerIdx)));
+        }
       }
 
       processOperandsEVA(param);

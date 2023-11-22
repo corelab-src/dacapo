@@ -1,11 +1,13 @@
 #include "hecate/Dialect/Earth/Transforms/Common.h"
+#include "hecate/Dialect/Earth/IR/EarthOps.h"
 
 using namespace mlir;
 
 void hecate::earth::refineLevel(mlir::OpBuilder builder, mlir::Operation *op,
-                                int64_t output_val, int64_t min_level) {
+                                int64_t waterline, int64_t output_val,
+                                int64_t min_level) {
   int64_t max_required_level =
-      hecate::earth::EarthDialect::bootstrapLevelUpperBound - min_level;
+      hecate::earth::EarthDialect::bootstrapLevelUpperBound + 1 - min_level;
 
   builder.setInsertionPoint(op);
 
@@ -17,16 +19,12 @@ void hecate::earth::refineLevel(mlir::OpBuilder builder, mlir::Operation *op,
     acc_scale_max = std::max(acc_scale_max, acc_scale);
   }
 
-  /* max_required_level = */
-  /*     (acc_scale_max + output_val + rescalingFactor - 1) / rescalingFactor;
-   */
-
   for (size_t i = 0; i < op->getNumOperands(); i++) {
     auto v = op->getOperand(i);
     auto st = v.getType().dyn_cast<hecate::earth::HEScaleTypeInterface>();
     auto acc_scale = st.getLevel() * rescalingFactor + st.getScale();
     int64_t required_level =
-        (acc_scale + output_val + rescalingFactor - 1) / rescalingFactor;
+        (acc_scale + output_val + waterline - 1) / rescalingFactor;
     int64_t level_diff = max_required_level - required_level;
     op->setOperand(i, builder.create<hecate::earth::ModswitchOp>(
                           op->getLoc(), v, level_diff));
@@ -45,10 +43,10 @@ void hecate::earth::refineReturnValues(mlir::func::FuncOp func,
   //
 
   auto rop = dyn_cast<func::ReturnOp>(func.getBlocks().front().getTerminator());
-  hecate::earth::refineLevel(builder, rop, output_val, 0);
+  hecate::earth::refineLevel(builder, rop, waterline, output_val, 0);
   func.walk([&](hecate::earth::BootstrapOp bop) {
     hecate::earth::refineLevel(
-        builder, bop, output_val,
+        builder, bop, waterline, output_val,
         hecate::earth::EarthDialect::bootstrapLevelLowerBound);
   });
 

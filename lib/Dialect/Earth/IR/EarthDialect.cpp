@@ -267,7 +267,12 @@ void hecate::earth::BootstrapOp::getCanonicalizationPatterns(
   // accumulated scale > maximum scale limit
   /* inferredReturnTypes.push_back(lScale.switchLevel(0).switchScale( */
   /*     hecate::earth::EarthDialect::rescalingFactor)); */
-  inferredReturnTypes.push_back(lScale.switchLevel(0));
+  if (lScale.getScale() == 0) {
+    inferredReturnTypes.push_back(lScale.switchLevel(0));
+  } else {
+    inferredReturnTypes.push_back(lScale.switchLevel(0).switchScale(
+        hecate::earth::EarthDialect::rescalingFactor));
+  }
   return ::mlir::success();
 }
 
