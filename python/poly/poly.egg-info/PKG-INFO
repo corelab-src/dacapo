@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: poly
+Version: 0.0.1
+Summary: Polynomial API
+Home-page: UNKNOWN
+Author: ['yongwoo', 'seonyoung']
+Author-email: ['dragonrain96@gmail.com', 'seonyoung@yonsei.ac.kr']
+License: UNKNOWN
+Keywords: yongwoo,seonyoung,homomorphic encryption,ckks,hecate,elasm,dacapo
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Requires-Python: >=3.6
+
+UNKNOWN
+

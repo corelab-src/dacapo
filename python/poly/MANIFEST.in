@@ -1,0 +1,4 @@
+include MPCB.py
+include Poly.py
+recursive-include poly/models *
+recursive-include poly/data *
