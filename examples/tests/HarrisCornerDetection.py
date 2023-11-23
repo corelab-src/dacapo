@@ -71,6 +71,7 @@ if __name__ == "__main__" :
 
     a_compile_type = sys.argv[1]
     a_compile_opt = int(sys.argv[2])
+    hc.setLibnHW(sys.argv)
     stem = Path(__file__).stem
     print("sim:",sf.simulate(f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm"))
     hevm = hc.HEVM()
