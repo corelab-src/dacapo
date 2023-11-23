@@ -60,14 +60,20 @@ if __name__ == "__main__" :
 
     a_compile_type = sys.argv[1]
     a_compile_opt = int(sys.argv[2])
+    hc.setLibnHW(sys.argv)
     stem = Path(__file__).stem
     print("sim:", sf.simulate(f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm"))
+    
     hevm = hc.HEVM()
     stem = Path(__file__).stem
     hevm.load (f"traced/_hecate_{stem}.cst", f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm")
 
     input_dat = preprocess()
     reference = postprocess(process(input_dat))
+    [hevm.setInput(i, dat) for i, dat in enumerate([input_dat])]
+    timer = time.perf_counter_ns()
+    hevm.run()
+    timer = time.perf_counter_ns() -timer
     [hevm.setInput(i, dat) for i, dat in enumerate([input_dat])]
     timer = time.perf_counter_ns()
     hevm.run()

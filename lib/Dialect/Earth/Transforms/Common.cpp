@@ -3,7 +3,7 @@
 
 using namespace mlir;
 
-void hecate::earth::refineLevel(mlir::OpBuilder builder, mlir::Operation *op,
+int64_t hecate::earth::refineLevel(mlir::OpBuilder builder, mlir::Operation *op,
                                 int64_t waterline, int64_t output_val,
                                 int64_t min_level) {
   int64_t max_required_level =
@@ -19,6 +19,12 @@ void hecate::earth::refineLevel(mlir::OpBuilder builder, mlir::Operation *op,
     acc_scale_max = std::max(acc_scale_max, acc_scale);
   }
 
+  if(hecate::earth::EarthDialect::bootstrapLevelUpperBound < 3)
+  {
+    max_required_level =
+        (acc_scale_max + output_val + rescalingFactor - 1) / rescalingFactor;
+  }
+
   for (size_t i = 0; i < op->getNumOperands(); i++) {
     auto v = op->getOperand(i);
     auto st = v.getType().dyn_cast<hecate::earth::HEScaleTypeInterface>();
@@ -31,6 +37,7 @@ void hecate::earth::refineLevel(mlir::OpBuilder builder, mlir::Operation *op,
     op->setOperand(i, builder.create<hecate::earth::ModswitchOp>(
                           op->getLoc(), v, level_diff));
   }
+  return max_required_level;
 }
 
 void hecate::earth::refineReturnValues(mlir::func::FuncOp func,
@@ -38,28 +45,31 @@ void hecate::earth::refineReturnValues(mlir::func::FuncOp func,
                                        SmallVector<mlir::Type, 4> inputTypes,
                                        int64_t waterline, int64_t output_val) {
 
-  int64_t max_required_level =
-      hecate::earth::EarthDialect::bootstrapLevelUpperBound;
-
+  int64_t max_required_level;
+  //    hecate::earth::EarthDialect::bootstrapLevelUpperBound;
   // Reduce the level of the resulting values to reduce the size of returns
   //
 
   auto rop = dyn_cast<func::ReturnOp>(func.getBlocks().front().getTerminator());
-  hecate::earth::refineLevel(builder, rop, waterline, output_val, 0);
+  max_required_level = hecate::earth::refineLevel(builder, rop, waterline, output_val, 0);
+  bool first_bootstrap = false;
   func.walk([&](hecate::earth::BootstrapOp bop) {
-    hecate::earth::refineLevel(
+    auto max_level = hecate::earth::refineLevel(
         builder, bop, waterline, output_val,
         hecate::earth::EarthDialect::bootstrapLevelLowerBound - 1);
+      if(!first_bootstrap) {
+    	max_required_level = max_level;
+	    first_bootstrap = true;
+    }
   });
-
+  //max_required_level=16;
   /* func.walk([&](func::ReturnOp rop) { */
   // Remap the return types
   func.setFunctionType(
       builder.getFunctionType(inputTypes, rop.getOperandTypes()));
   /* }); */
-
   func->setAttr("init_level", builder.getI64IntegerAttr(max_required_level));
-
+  
   SmallVector<int64_t, 4> scales_in;
   SmallVector<int64_t, 4> scales_out;
 

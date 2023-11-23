@@ -2,12 +2,16 @@
 #include "hecate/Conversion/CKKSCommon/PolyTypeConverter.h"
 #include "hecate/Dialect/Earth/IR/EarthOps.h"
 #include "mlir/Transforms/DialectConversion.h"
-
 using namespace mlir;
 using namespace hecate;
 
 PolyTypeConverter::PolyTypeConverter(int64_t base_level)
-    : base_level(hecate::earth::EarthDialect::bootstrapLevelUpperBound) {
+    //: base_level(hecate::earth::EarthDialect::bootstrapLevelUpperBound) {
+    : base_level(base_level) {
+  if ( hecate::earth::EarthDialect::bootstrapLevelUpperBound >= 3)
+  {
+    base_level = hecate::earth::EarthDialect::bootstrapLevelUpperBound;
+  }
   addConversion([&](mlir::Type t) { return t; });
   addConversion([&](mlir::FunctionType t) { return convertFunctionType(t); });
   addConversion([&](mlir::RankedTensorType t) { return convertTensorType(t); });

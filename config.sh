@@ -25,7 +25,7 @@ python3 $HECATE/examples/benchmarks/$1.py
 
 hc-test()(
 cd $HECATE/examples
-python3 $HECATE/examples/tests/$3.py $1 $2
+python3 $HECATE/examples/tests/$3.py $1 $2 $4 $5
 )
 
 
@@ -57,6 +57,21 @@ hc-opt-test-timing() {
 hopt-timing-only $1 $2 $3 && hc-test $1 $2 $3
 }
 
+hopt-heaan-cpu() {
+hopt --$1 --ckks-config="$HECATE/profiled_heaan_cpu.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
+}
+
+hopt-heaan-gpu() {
+hopt --$1 --ckks-config="$HECATE/profiled_heaan_gpu.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
+}
+
+hopt-seal() {
+hopt --$1 --ckks-config="$HECATE/profiled_SEAL.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
+}
+
+alias hopts-heaan-cpu=hopt-heaan-cpu
+alias hopts-heaan-gpu=hopt-heaan-gpu
+alias hopts-seal=hopt-seal
 
 alias hoptd=hopt-debug-print
 alias hopta=hopt-debug-print-all

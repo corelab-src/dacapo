@@ -413,8 +413,9 @@ struct HEAAN_HEVM {
 };
 
 extern "C" {
-void *initFullVM(char *dir) {
+void *initFullVM(char *dir, bool device=false) {
   auto vm = new HEAAN_HEVM();
+  vm->togpu = device;
   vm->loadHEAAN(dir);
   return (void *)vm;
 }
@@ -509,5 +510,9 @@ int64_t getResLen(void *vm) {
 void setDebug(void *vm, bool enable) {
   auto hevm = static_cast<HEAAN_HEVM *>(vm);
   hevm->debug = enable;
+}
+void setToGPU(void *vm, bool ongpu) {
+  auto hevm = static_cast<HEAAN_HEVM *>(vm);
+  hevm->togpu = ongpu;
 }
 };
