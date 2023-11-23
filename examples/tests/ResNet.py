@@ -70,7 +70,6 @@ def postprocess(res, torch_res) :
     torch_res_size = 1
     for i in range(len(torch_res.shape)):
         torch_res_size *= torch_res.shape[i]
-    print(np.array(res).shape)
     return res[0,:torch_res_size].reshape(torch_res.shape) *32
     # return res[0,:torch_res_size].reshape(torch_res.shape)
 
@@ -90,25 +89,25 @@ if __name__ == "__main__" :
     a_compile_type = sys.argv[1]
     a_compile_opt = int(sys.argv[2])
     stem = Path(__file__).stem
-    print(sf.simulate(f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm"))
+    print("sim:", sf.simulate(f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm"))
     
-    # hevm = hc.HEVM()
-    # stem = Path(__file__).stem
-    # hevm.load (f"traced/_hecate_{stem}.cst", f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm")
+    hevm = hc.HEVM()
+    stem = Path(__file__).stem
+    hevm.load (f"traced/_hecate_{stem}.cst", f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm")
 
-    # (input, target) = val_loader.dataset[0]
-    # input_var = input.unsqueeze(0)
-    # target = torch.tensor([target])
-    # target_var = target
-    # reference = process(input_var)
-    # [hevm.setInput(i, dat) for i, dat in enumerate([preprocess(input_var)])]
-    # timer = time.perf_counter_ns()
-    # hevm.run()
-    # timer = time.perf_counter_ns() -timer
-    # res = hevm.getOutput()
-    # res = postprocess(res, reference)
-    # err = res - reference 
+    (input, target) = val_loader.dataset[0]
+    input_var = input.unsqueeze(0)
+    target = torch.tensor([target])
+    target_var = target
+    reference = process(input_var)
+    [hevm.setInput(i, dat) for i, dat in enumerate([preprocess(input_var)])]
+    timer = time.perf_counter_ns()
+    hevm.run()
+    timer = time.perf_counter_ns() -timer
+    res = hevm.getOutput()
+    res = postprocess(res, reference)
+    err = res - reference 
     # print(res)
     # print(reference)
-    # rms = np.sqrt( np.sum(err*err) / res.shape[-1])
-    # hevm.printer(timer/pow(10, 9), rms)
+    rms = np.sqrt( np.sum(err*err) / res.shape[-1])
+    hevm.printer(timer/pow(10, 9), rms)
