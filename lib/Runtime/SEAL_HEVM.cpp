@@ -321,15 +321,31 @@ struct SEAL_HEVM {
                 << std::log2(plains[rhs].scale()) << std::endl;
     evaluator->multiply_plain(ciphers[lhs], plains[rhs], ciphers[dst]);
   }
+  void bootstrap(int16_t dst, int64_t src, uint64_t targetLevel) {
+    if (debug)
+      std::cout << std::log2(ciphers[src].scale()) << std::endl;
+    seal::Plaintext ptxt;
+    decryptor->decrypt(ciphers[src], ptxt);
+    std::vector<double> dats;
+    encoder->decode(ptxt, dats);
+    encode_internal(ptxt, dats, targetLevel, std::log2(ciphers[src].scale()));
+    encryptor->encrypt(ptxt, ciphers[dst]);
+  }
 
   void run() {
     int i = (header.hevm_header_size + config.config_body_length) / 8;
     int j = 0;
     for (HEVMOperation &op : ops) {
       if (debug) {
+        /* std::cout << std::oct << i++ << " " << std::dec << j++ << std::endl;
+         */
+        /* std::cout << op.opcode << " " << op.dst << " " << op.lhs << " " */
+        /* << op.rhs << std::endl; */
+        std::cout << std::endl;
         std::cout << std::oct << i++ << " " << std::dec << j++ << std::endl;
-        std::cout << op.opcode << " " << op.dst << " " << op.lhs << " "
-                  << op.rhs << std::endl;
+        std::cout << "opcode [" << op.opcode << "], dst [" << op.dst
+                  << "], lhs [" << op.lhs << "], rhs [" << op.rhs << "]"
+                  << std::endl;
       }
       switch (op.opcode) {
       case 0: { // Encode
@@ -370,6 +386,10 @@ struct SEAL_HEVM {
       }
       case 9: { // MulCP
         mulcp(op.dst, op.lhs, op.rhs);
+        break;
+      }
+      case 10: { // Bootstrap
+        bootstrap(op.dst, op.lhs, op.rhs);
         break;
       }
       default: {
@@ -470,5 +490,11 @@ int64_t getResLen(void *vm) {
 void setDebug(void *vm, bool enable) {
   auto hevm = static_cast<SEAL_HEVM *>(vm);
   hevm->debug = enable;
+}
+void printMem(void *vm) {
+  auto hevm = static_cast<SEAL_HEVM *>(vm);
+  std::cout << "MemUsage: 0.0GB (0.0%)\n";
+  std::cout << "polyDegree: " << hevm->N << '\n';
+  std::cout << "encodeOnline: " << 0 << "\n\n";
 }
 };

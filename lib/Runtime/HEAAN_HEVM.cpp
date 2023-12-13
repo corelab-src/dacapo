@@ -1,5 +1,6 @@
 #include <HEaaN/Context.hpp>
 #include <HEaaN/Message.hpp>
+#include <HEaaN/Plaintext.hpp>
 #include <HEaaN/device/CudaTools.hpp>
 #include <HEaaN/device/Device.hpp>
 #include <cassert>
@@ -8,6 +9,7 @@
 
 #include <HEaaN/HEaaN.hpp>
 #include <HEaaN/ParameterPreset.hpp>
+#include <cmath>
 #include <map>
 
 #include <type_traits>
@@ -55,14 +57,23 @@ struct HEAAN_HEVM {
       32768, 40960, 49152, 57344, 61440, 63488, 64512, 64768, 65024, 65280,
       65408, 65472, 65504, 65512, 65520, 65528, 65532, 65534, 65535,
   };
+  /* std::vector<int64_t> rotKeyOffset = { */
+  /*     1,     2,     3,     4,     5,     6,     7,     8,     16, */
+  /*     24,    32,    64,    96,    128,   160,   192,   224,   256, */
+  /*     512,   768,   1024,  2048,  3072,  4096,  5120,  6144,  7168, */
+  /*     8192,  9216,  10240, 11264, 12288, 13312, 14336, 15360, 15616, */
+  /*     15872, 16192, 16224, 16256, 16288, 16320, 16352, 16360, 16368, */
+  /*     16376, 16377, 16378, 16379, 16380, 16381, 16382, 16383}; */
 
   bool debug = false;
   bool togpu = true;
+  bool preencode = false;
 
   static void create_context(char *dir) {
 
     auto strdir = std::string(dir);
 
+    /* HEaaN::ParameterPreset preset = HEaaN::ParameterPreset::ST19; */
     HEaaN::ParameterPreset preset = HEaaN::ParameterPreset::FVa;
     auto context = HEaaN::makeContext(preset, {0});
     auto num_full_slot = getLogFullSlots(context);
@@ -85,10 +96,16 @@ struct HEAAN_HEVM {
     auto MemUse = HEaaN::CudaTools::getCudaMemoryInfo().second -
                   HEaaN::CudaTools::getCudaMemoryInfo().first;
     auto TotalMemCapacity = HEaaN::CudaTools::getCudaMemoryInfo().second;
-    std::cerr << " MemUsage: " << MemUse / std::pow(10, 9) << "GB";
-    std::cerr << " (" << double(MemUse * 100) / double(TotalMemCapacity) << "%)"
-              << '\n';
+    std::cout << "MemUsage: " << MemUse / std::pow(10, 9) << "GB";
+    std::cout << " (" << double(MemUse * 100) / double(TotalMemCapacity) << "%)"
+              << "\n";
   }
+  void printInfo() {
+    int encodeOnline = 2;
+    std::cout << "polyDegree: " << N << '\n';
+    std::cout << "encodeOnline: " << encodeOnline << "\n\n";
+  }
+
   void loadHEAAN(char *dir) {
     HEaaN::setUVM(HEaaN::getCurrentCudaDevice(), false);
     auto strdir = std::string(dir);
@@ -109,11 +126,13 @@ struct HEAAN_HEVM {
     evaluator = std::make_unique<HEaaN::HomEvaluator>(context, *keypack);
     bootstrapper = std::make_unique<HEaaN::Bootstrapper>(*evaluator);
     if (togpu) {
+      /* printCudaMemInfo(); */
       seckey->to(HEaaN::getCurrentCudaDevice());
       keypack->to(HEaaN::getCurrentCudaDevice());
       bootstrapper->makeBootConstants(HEaaN::getLogFullSlots(context));
       bootstrapper->loadBootConstants(HEaaN::getLogFullSlots(context),
                                       HEaaN::getCurrentCudaDevice());
+      /* printCudaMemInfo(); */
     }
   }
 
@@ -167,7 +186,6 @@ struct HEAAN_HEVM {
     iff.read((char *)ops.data(), ops.size() * sizeof(HEVMOperation));
 
     ciphers.resize(config.num_ctxt_buffer, HEaaN::Ciphertext(context));
-    /* plains.resize(config.num_ptxt_buffer, HEaaN::Plaintext(context)); */
     if (togpu) {
       for (auto &&cipher : ciphers)
         cipher.to(HEaaN::getCurrentCudaDevice());
@@ -176,9 +194,17 @@ struct HEAAN_HEVM {
     HEaaN::u64 log_slot = N - 1;
     HEaaN::Message datas(log_slot, 0.0);
     msgs.resize(config.num_ptxt_buffer, datas);
-    plains.resize(1, HEaaN::Plaintext(context));
-    if (togpu) {
-      plains[0].to(HEaaN::getCurrentCudaDevice());
+    if (preencode) {
+      plains.resize(config.num_ptxt_buffer, HEaaN::Plaintext(context));
+      if (togpu) {
+        for (auto &&plain : plains)
+          plain.to(HEaaN::getCurrentCudaDevice());
+      }
+    } else {
+      plains.resize(1, HEaaN::Plaintext(context));
+      if (togpu) {
+        plains[0].to(HEaaN::getCurrentCudaDevice());
+      }
     }
     scalec.resize(config.num_ctxt_buffer);
     scalep.resize(config.num_ptxt_buffer);
@@ -217,12 +243,15 @@ struct HEAAN_HEVM {
     std::vector<double> identity(1LL << (N - 1), 1.0);
     for (HEVMOperation &op : ops) {
       if (op.opcode == 0) {
-        /* encode_internal(plains[op.dst], */
-        /*                 op.lhs == ((unsigned short)-1) ? identity */
-        /* : buffer[op.lhs], */
-        /* op.rhs >> 8, op.rhs & 0xFF); */
-        to_msg(op.dst,
-               op.lhs == ((unsigned short)-1) ? identity : buffer[op.lhs]);
+        if (preencode) {
+          encode_internal(plains[op.dst],
+                          op.lhs == ((unsigned short)-1) ? identity
+                                                         : buffer[op.lhs],
+                          op.rhs >> 8, op.rhs & 0xFF);
+        } else {
+          to_msg(op.dst,
+                 op.lhs == ((unsigned short)-1) ? identity : buffer[op.lhs]);
+        }
         levelp[op.dst] = op.rhs >> 8;
         scalep[op.dst] = op.rhs & 0xFF;
       }
@@ -257,7 +286,6 @@ struct HEAAN_HEVM {
     }
     if (togpu) {
       datas.to(HEaaN::getCurrentCudaDevice());
-      /* dst.to(HEaaN::getCurrentCudaDevice()); */
     }
     dst = endecoder->encode(datas, level, std::pow(2.0, scale));
     return;
@@ -281,7 +309,8 @@ struct HEAAN_HEVM {
     if (debug)
       std::cout << scalec[src] << std::endl;
     ciphers[dst] = ciphers[src];
-    scalec[dst] = scalec[src] - ciphers[src].getCurrentScaleFactor();
+    scalec[dst] =
+        scalec[src] - std::round(ciphers[src].getCurrentScaleFactor());
     ciphers[dst].setRescaleCounter(1);
     evaluator->rescale(ciphers[dst]);
   }
@@ -290,14 +319,27 @@ struct HEAAN_HEVM {
       std::cout << scalec[src] << " " << downFactor << std::endl;
     }
     if (downFactor > 0) {
-      scalec[dst] = scalec[src] - ciphers[src].getCurrentScaleFactor();
+      scalec[dst] =
+          scalec[src] - std::round(ciphers[src].getCurrentScaleFactor());
       evaluator->levelDownOne(ciphers[src], ciphers[dst]);
-      scalec[dst] += ciphers[dst].getCurrentScaleFactor();
+      scalec[dst] += std::round(ciphers[dst].getCurrentScaleFactor());
+      if (debug) {
+        std::cout << std::round(ciphers[dst].getCurrentScaleFactor()) << " "
+                  << downFactor << std::endl;
+      }
     }
     for (int i = 1; i < downFactor; i++) {
-      scalec[dst] = scalec[dst] - ciphers[dst].getCurrentScaleFactor();
+      scalec[dst] =
+          scalec[dst] - std::round(ciphers[dst].getCurrentScaleFactor());
       evaluator->levelDownOne(ciphers[dst], ciphers[dst]);
-      scalec[dst] += ciphers[dst].getCurrentScaleFactor();
+      scalec[dst] += std::round(ciphers[dst].getCurrentScaleFactor());
+      if (debug) {
+        std::cout << std::round(ciphers[dst].getCurrentScaleFactor()) << " "
+                  << downFactor << std::endl;
+      }
+    }
+    if (debug) {
+      std::cout << scalec[dst] << " " << downFactor << std::endl;
     }
   }
   void upscale(int16_t dst, int16_t src, int16_t upFactor) {
@@ -313,9 +355,12 @@ struct HEAAN_HEVM {
     if (debug)
       std::cout << scalec[lhs] << " " << scalep[rhs] << std::endl;
     scalec[dst] = scalec[lhs];
-    encode_online(rhs);
-    /* evaluator->add(ciphers[lhs], plains[rhs], ciphers[dst]); */
-    evaluator->add(ciphers[lhs], plains[0], ciphers[dst]);
+    if (preencode) {
+      evaluator->add(ciphers[lhs], plains[rhs], ciphers[dst]);
+    } else {
+      encode_online(rhs);
+      evaluator->add(ciphers[lhs], plains[0], ciphers[dst]);
+    }
   }
   void mulcc(int16_t dst, int16_t lhs, int16_t rhs) {
     if (debug)
@@ -330,10 +375,12 @@ struct HEAAN_HEVM {
       std::cout << "cipher level : " << ciphers[lhs].getLevel() << '\n';
       std::cout << "plain level : " << levelp[rhs] << '\n';
     }
-    /* evaluator->multWithoutRescale(ciphers[lhs], plains[rhs], ciphers[dst]);
-     */
-    encode_online(rhs);
-    evaluator->multWithoutRescale(ciphers[lhs], plains[0], ciphers[dst]);
+    if (preencode) {
+      evaluator->multWithoutRescale(ciphers[lhs], plains[rhs], ciphers[dst]);
+    } else {
+      encode_online(rhs);
+      evaluator->multWithoutRescale(ciphers[lhs], plains[0], ciphers[dst]);
+    }
     ciphers[dst].setRescaleCounter(0);
     scalec[dst] = scalec[lhs] + scalep[rhs];
   }
@@ -348,7 +395,7 @@ struct HEAAN_HEVM {
   void run() {
     int i = (header.hevm_header_size + config.config_body_length) / 8;
     int j = 0;
-    HEaaN::CudaTools::cudaDeviceSynchronize();
+    /* HEaaN::CudaTools::cudaDeviceSynchronize(); */
     for (HEVMOperation &op : ops) {
       if (debug) {
         std::cout << std::endl;
@@ -404,7 +451,6 @@ struct HEAAN_HEVM {
         break;
       }
       default: {
-        /* assert(0 && "Invalid opcode"); */
         break;
       }
       }
@@ -413,7 +459,7 @@ struct HEAAN_HEVM {
 };
 
 extern "C" {
-void *initFullVM(char *dir, bool device=false) {
+void *initFullVM(char *dir, bool device = false) {
   auto vm = new HEAAN_HEVM();
   vm->togpu = device;
   vm->loadHEAAN(dir);
@@ -464,7 +510,7 @@ void decrypt(void *vm, int64_t i, double *dat) {
   HEaaN::Plaintext ptxt(hevm->context);
   hevm->decryptor->decrypt(hevm->ciphers[i], *hevm->seckey, ptxt);
   HEaaN::Message msg =
-      hevm->endecoder->decode(ptxt, std::pow(2.0, hevm->scalec[i]));
+      hevm->endecoder->decode(ptxt, std::pow(2.0, std::round(hevm->scalec[i])));
   if (hevm->togpu)
     msg.to(HEaaN::getDefaultDevice());
   for (int i = 0; i < (1LL << (HEAAN_HEVM::N - 1)); i++) {
@@ -514,5 +560,10 @@ void setDebug(void *vm, bool enable) {
 void setToGPU(void *vm, bool ongpu) {
   auto hevm = static_cast<HEAAN_HEVM *>(vm);
   hevm->togpu = ongpu;
+}
+void printMem(void *vm) {
+  auto hevm = static_cast<HEAAN_HEVM *>(vm);
+  hevm->printCudaMemInfo();
+  hevm->printInfo();
 }
 };

@@ -69,9 +69,18 @@ hopt-seal() {
 hopt --$1 --ckks-config="$HECATE/profiled_SEAL.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
 }
 
+hopt-lib-hw() {
+hopt --$1 --ckks-config="$HECATE/profiled_$4_$5.json" --waterline=$2 --enable-debug-printer $HECATE/examples/traced/$3.mlir --mlir-print-debuginfo --mlir-pretty-debuginfo --mlir-print-local-scope --mlir-disable-threading --mlir-timing --mlir-print-ir-after-failure -o $HECATE/examples/optimized/$1/$3.$2.mlir
+}
+
+hc-back-opt-test(){
+hopt-lib-hw $1 $2 $3 $4 $5 && hc-test $1 $2 $3 $4 $5
+}
+
 alias hopts-heaan-cpu=hopt-heaan-cpu
 alias hopts-heaan-gpu=hopt-heaan-gpu
 alias hopts-seal=hopt-seal
+alias hbcot=hc-back-opt-test
 
 alias hoptd=hopt-debug-print
 alias hopta=hopt-debug-print-all
