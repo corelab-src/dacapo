@@ -27,8 +27,8 @@ poly1 = MPCB.GenPoly(treeStr1,coeffStr1, 4, scale = 2.0)
 poly2 = MPCB.GenPoly(treeStr2,coeffStr2, 4, scale = 1.7)
 poly3 = MPCB.GenPoly(treeStr3,coeffStr3, 8, scale = 2.0)
 
-def GenPoly () :
-    return MPCB.GenPoly(tree_var, coeff_var, 16)
+def GenPoly (degree = 16) :
+    return MPCB.GenPoly(tree_var, coeff_var, degree)
 def sign (x) : 
     return poly3(poly2(poly1(x)))
 def relu (x) : 

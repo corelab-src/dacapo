@@ -67,6 +67,7 @@ lw.setDebug.argtypes = [ctypes.c_void_p, ctypes.c_bool]
 
 #ToGPU Function
 lw.setToGPU.argtypes = [ctypes.c_void_p, ctypes.c_bool]
+lw.printMem.argtypes = [ctypes.c_void_p]
 
 def reinit_lw():
     global lw
@@ -137,27 +138,31 @@ def setLibnHW (argv=None):
             if len(argv) == 5:
                 if(argv[4].upper() in LibnHW_mapping[run_library]):
                     run_hardware = argv[4].upper()
-                    print("library :",run_library,"hardware :",run_hardware)
+                    print("library:",run_library)
+                    print("hardware:",run_hardware)
                 else:
                     print("Not supported",argv[4].upper())
                     print("Suppoerted hardware :", LibnHW_mapping[run_library])
                     exit()
             else:
                 run_hardware = LibnHW_mapping[run_library][0]
-                print("library :",run_library,"hardware :",run_hardware,"(default)")
+                print("library:",run_library)
+                print("hardware:",run_hardware)
         elif(argv[3].upper() in HWnLib_mapping.keys()):
             run_hardware = argv[3].upper()
             if len(argv) == 5:
                 if(argv[4].upper() in HWnLib_mapping[run_hardware]):
                     run_library = argv[4].upper()
-                    print("library :",run_library,"hardware :",run_hardware)
+                    print("library:",run_library)
+                    print("hardware:",run_hardware)
                 else:
                     print("Not supported",argv[4].upper())
                     print("Suppoerted library :", HWnLib_mapping[run_hardware])
                     exit()        
             else:
                 run_library = HWnLib_mapping[run_hardware][0]
-                print("library :",run_library,"(default), hardware :",run_hardware)
+                print("library:",run_library)
+                print("hardware:",run_hardware)
         else:
             print("Not supported",argv[3])
             print("Supported library :",LibnHW_mapping.keys())
@@ -165,7 +170,8 @@ def setLibnHW (argv=None):
             exit()        
     else:
         #        # For default
-         print("library :",run_library,"(default), hardware :",run_hardware,"(default)")
+        print("library:",run_library)
+        print("hardware:",run_hardware)
 #        run_library = list(LibnHW_mapping.keys())[0]
 #        run_hardware = LibnHW_mapping[run_library][0]
 
@@ -206,7 +212,6 @@ class HEVM :
             raise Exception(f"No file exists in const_path {const_path}")
         if not Path(hevm_path).is_file() :
             raise Exception(f"No file exists in hevm_path {hevm_path}")
-
         if self.option == "full" or self.option == "server" :
             lw.load(self.vm, const_path.encode('utf-8'), hevm_path.encode('utf-8'))
         elif self.option ==  "client" :
@@ -236,9 +241,12 @@ class HEVM :
         lw.setToGPU(self.vm, ongpu)
 
     def getOutput (self) : 
+        lw.printMem(self.vm)
         if(run_library == "HEAAN"):
             result = np.zeros( (self.reslen, 1 << 16), dtype=np.float64)
             data = np.zeros(  1 << 16, dtype=np.float64)
+            # result = np.zeros( (self.reslen, 1 << 14), dtype=np.float64)
+            # data = np.zeros(  1 << 14, dtype=np.float64)
         elif(run_library == "SEAL"):
             result = np.zeros( (self.reslen, 1 << 14), dtype=np.float64)
             data = np.zeros(  1 << 14, dtype=np.float64)
