@@ -220,7 +220,7 @@ void registerHecatePipeline(cl::opt<std::string> &outputFilename) {
                                       cl::init(50)};
 
   PassPipelineRegistration<>(
-      "eva", "Perfrom waterline rescaling and early modswitch",
+      "eva", "Perform waterline rescaling and early modswitch",
       [&](OpPassManager &pm) {
         std::string dir;
         std::string stem;
@@ -356,6 +356,55 @@ void registerHecatePipeline(cl::opt<std::string> &outputFilename) {
 
         pm.addNestedPass<func::FuncOp>(
             hecate::ckks::createUpscaleToMulcpConversionPass());
+        pm.addNestedPass<func::FuncOp>(hecate::ckks::createRemoveLevel());
+        pm.addNestedPass<func::FuncOp>(hecate::ckks::createReuseBuffer());
+        pm.addNestedPass<func::FuncOp>(createCanonicalizerPass());
+        pm.addNestedPass<func::FuncOp>(
+            hecate::ckks::createEmitHEVM({dir + "/" + stem}));
+      });
+
+  PassPipelineRegistration<>(
+      "dacapo", "Perform automatic bootstrapping placement",
+      [&](OpPassManager &pm) {
+        std::string dir;
+        std::string stem;
+        if (outputFilename != "-") {
+          std::filesystem::path outputName(outputFilename.getValue());
+          stem = outputName.stem();
+          dir = outputName.parent_path();
+        }
+        if (enable_check_smu)
+          pm.addPass(hecate::earth::createSMUChecker());
+
+        /* pm.addNestedPass<func::FuncOp>(hecate::earth::createRemoveBootstrap());
+         */
+        pm.addNestedPass<func::FuncOp>(
+            hecate::earth::createProactiveRescaling({waterline, output_val}));
+        pm.addNestedPass<func::FuncOp>(hecate::earth::createEarlyModswitch());
+        pm.addNestedPass<func::FuncOp>(
+            hecate::earth::createFlexibleBootstrap());
+
+        if (enable_check_smu)
+          pm.addPass(hecate::earth::createSMUChecker());
+
+        pm.addPass(createCSEPass());
+        pm.addPass(createCanonicalizerPass());
+
+        if (enable_printer)
+          pm.addPass(createLocationSnapshotPass(
+              OpPrintingFlags().enableDebugInfo(false, false),
+              dir + "/" + stem + ".earth.mlir", "earth"));
+
+        pm.addNestedPass<func::FuncOp>(
+            hecate::earth::createEarthToCKKSConversionPass());
+
+        pm.addNestedPass<func::FuncOp>(
+            hecate::ckks::createUpscaleToMulcpConversionPass());
+
+        if (enable_printer)
+          pm.addPass(createLocationSnapshotPass(
+              OpPrintingFlags().enableDebugInfo(false, false),
+              dir + "/" + stem + ".ckks.mlir", "ckks"));
         pm.addNestedPass<func::FuncOp>(hecate::ckks::createRemoveLevel());
         pm.addNestedPass<func::FuncOp>(hecate::ckks::createReuseBuffer());
         pm.addNestedPass<func::FuncOp>(createCanonicalizerPass());

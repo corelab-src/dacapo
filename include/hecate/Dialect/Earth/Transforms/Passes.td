@@ -121,7 +121,19 @@ def LatencyEstimator : Pass<"estimate-latency", "::mlir::func::FuncOp"> {
       This pass requires for function to fully scale managed and all operations have HEScaleOpInterface,
            HEProfInterface}];
 }
-
+def RemoveBootstrap : Pass<"remove-bootstrap", "::mlir::func::FuncOp"> {
+  let summary = "Remove manually inserted bootstrap";
+  let description = [{
+    This pass removes manually inserted bootstrapping operation.
+  }];
+}
+def FlexibleBootstrap : Pass<"flexible-bootstrap", "::mlir::func::FuncOp"> {
+  let summary = "Change bootstrapping target level as required";
+  let description = [{
+    This pass changes the target level of bootstrapping.
+      This pass optimizes the bootstrapping latency by lowering level as required.
+  }];
+}
 /* def ScaleManagementStructuring : Pass<> */
 
 

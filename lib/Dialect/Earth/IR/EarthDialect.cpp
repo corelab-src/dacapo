@@ -270,9 +270,9 @@ void hecate::earth::BootstrapOp::getCanonicalizationPatterns(
   if (lScale.getScale() == 0) {
     inferredReturnTypes.push_back(lScale.switchLevel(0));
   } else {
-    inferredReturnTypes.push_back(lScale.switchLevel(0).switchScale(
-        hecate::earth::EarthDialect::rescalingFactor));
+    inferredReturnTypes.push_back(lScale.switchLevel(op.getTargetLevel()));
   }
+
   return ::mlir::success();
 }
 

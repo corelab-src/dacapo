@@ -143,10 +143,7 @@ void hecate::ckks::CKKSDialect::initialize() {
   auto op = BootstrapCOpAdaptor(operands, attributes, regions);
   auto dPoly = ckks::getPolyType(op.getDst());
   auto lPoly = ckks::getPolyType(op.getSrc());
-  if (dPoly.getNumPoly() == lPoly.getNumPoly() &&
-      (dPoly.getLevel() ==
-           hecate::earth::EarthDialect::bootstrapLevelUpperBound ||
-       dPoly.getLevel() == 0)) {
+  if (dPoly.getNumPoly() == lPoly.getNumPoly()) {
     inferredReturnTypes.push_back(op.getDst().getType());
     return ::mlir::success();
   } else {

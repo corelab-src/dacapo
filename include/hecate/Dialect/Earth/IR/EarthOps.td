@@ -233,7 +233,7 @@ def NegateOp : Unary_Earth_Op<"negate", [SameOperandsAndResultType]> {
 }
 
 def BootstrapOp : Unary_Earth_Op<"bootstrap"> {
-  let arguments = (ins HETensor:$value);
+  let arguments = (ins HETensor:$value, DefaultValuedAttr<I64Attr, "0">:$targetLevel);
   let results = (outs HETensor);
   code extraClassDeclaration = [{
     void processOperandsEVA(int64_t param);
@@ -258,10 +258,11 @@ def BootstrapOp : Unary_Earth_Op<"bootstrap"> {
     }
 
     void $cppClass::processResultsEVA(int64_t param){
-      getResult().setType(
-          getScaleType().switchScale(hecate::earth::EarthDialect::rescalingFactor));
+      /*   getResult().setType( */
+      /*       getScaleType().switchScale(hecate::earth::EarthDialect::rescalingFactor)); */
       getResult().setType(
           getScaleType().switchLevel(0));
+      setTargetLevel(getType().dyn_cast<HEScaleTypeInterface>().getLevel());
     }
 
   }];
