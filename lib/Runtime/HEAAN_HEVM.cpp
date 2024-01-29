@@ -247,13 +247,13 @@ struct HEAAN_HEVM {
           encode_internal(plains[op.dst],
                           op.lhs == ((unsigned short)-1) ? identity
                                                          : buffer[op.lhs],
-                          op.rhs >> 8, op.rhs & 0xFF);
+                          op.rhs >> 10, op.rhs & 0x3FF);
         } else {
           to_msg(op.dst,
                  op.lhs == ((unsigned short)-1) ? identity : buffer[op.lhs]);
         }
-        levelp[op.dst] = op.rhs >> 8;
-        scalep[op.dst] = op.rhs & 0xFF;
+        levelp[op.dst] = op.rhs >> 10;
+        scalep[op.dst] = op.rhs & 0x3FF;
       }
     }
   }
@@ -317,29 +317,23 @@ struct HEAAN_HEVM {
   void modswitch(int16_t dst, int16_t src, int16_t downFactor) {
     if (debug) {
       std::cout << scalec[src] << " " << downFactor << std::endl;
+      std::cout << "before level : " << ciphers[src].getLevel() << std::endl;
     }
     if (downFactor > 0) {
       scalec[dst] =
           scalec[src] - std::round(ciphers[src].getCurrentScaleFactor());
       evaluator->levelDownOne(ciphers[src], ciphers[dst]);
       scalec[dst] += std::round(ciphers[dst].getCurrentScaleFactor());
-      if (debug) {
-        std::cout << std::round(ciphers[dst].getCurrentScaleFactor()) << " "
-                  << downFactor << std::endl;
-      }
     }
     for (int i = 1; i < downFactor; i++) {
       scalec[dst] =
           scalec[dst] - std::round(ciphers[dst].getCurrentScaleFactor());
       evaluator->levelDownOne(ciphers[dst], ciphers[dst]);
       scalec[dst] += std::round(ciphers[dst].getCurrentScaleFactor());
-      if (debug) {
-        std::cout << std::round(ciphers[dst].getCurrentScaleFactor()) << " "
-                  << downFactor << std::endl;
-      }
     }
     if (debug) {
       std::cout << scalec[dst] << " " << downFactor << std::endl;
+      std::cout << "after level : " << ciphers[dst].getLevel() << std::endl;
     }
   }
   void upscale(int16_t dst, int16_t src, int16_t upFactor) {
@@ -406,7 +400,7 @@ struct HEAAN_HEVM {
       }
       switch (op.opcode) {
       case 0: { // Encode
-        encode(op.dst, op.lhs, op.rhs >> 8, op.rhs & 0xFF);
+        encode(op.dst, op.lhs, op.rhs >> 10, op.rhs & 0x3FF);
         break;
       }
       case 1: { // RotateC

@@ -70,7 +70,9 @@ def EncodeOp : CKKS_Op<"encode",[]> {
       op.opcode = 0;
       op.dst = plainMap[getDst()];
       op.lhs = getValue();
-      op.rhs = (getLevel() << 8) + getScale();
+      /* op.rhs = (getLevel() << 8) + getScale(); */
+      op.rhs = (getLevel() << 10) + getScale();
+      /* op.rhs = getLevel() << 10 ; */
       return op;
     }
     int64_t $cppClass::getNumOperands() {
