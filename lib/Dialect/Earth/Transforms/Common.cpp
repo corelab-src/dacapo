@@ -1,5 +1,6 @@
 #include "hecate/Dialect/Earth/Transforms/Common.h"
 #include "hecate/Dialect/Earth/IR/EarthOps.h"
+#include "hecate/Support/Support.h"
 
 using namespace mlir;
 
@@ -49,7 +50,14 @@ void hecate::earth::refineReturnValues(mlir::func::FuncOp func,
   //
 
   auto rop = dyn_cast<func::ReturnOp>(func.getBlocks().front().getTerminator());
-  hecate::earth::refineLevel(builder, rop, waterline, output_val, 0);
+  if (func->hasAttr("is_mid_segment") &&
+      func->getAttrOfType<mlir::BoolAttr>("is_mid_segment").getValue())
+    hecate::earth::refineLevel(
+        builder, rop, waterline, 0,
+        hecate::earth::EarthDialect::bootstrapLevelLowerBound - 1);
+  else
+    hecate::earth::refineLevel(builder, rop, waterline, output_val, 0);
+
   func.walk([&](hecate::earth::BootstrapOp bop) {
     hecate::earth::refineLevel(
         builder, bop, waterline, 0,
@@ -90,4 +98,24 @@ void hecate::earth::inferTypeForward(hecate::earth::ForwardMgmtInterface sop) {
           .succeeded()) {
     oop->getResults().back().setType(retTypes.back());
   }
+}
+
+llvm::SmallVector<mlir::Value, 4>
+hecate::earth::attachOpid(mlir::func::FuncOp func) {
+  llvm::SmallVector<mlir::Value, 4> values;
+  // attach the opid to operation
+  values.push_back(NULL);
+  func->walk([&](hecate::earth::HEScaleOpInterface sop) {
+    if ((llvm::isa<hecate::earth::UpscaleOp>(sop) ||
+         llvm::isa<hecate::earth::RescaleOp>(sop) ||
+         llvm::isa<hecate::earth::BootstrapOp>(sop) ||
+         llvm::isa<hecate::earth::ModswitchOp>(sop))) {
+      /* assert(0 && "Currently not supported"); */
+      return;
+    }
+    for (auto &&val : sop.getOperation()->getResults()) {
+      values.push_back(val);
+    }
+  });
+  return values;
 }

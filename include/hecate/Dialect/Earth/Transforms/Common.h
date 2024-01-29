@@ -18,6 +18,7 @@ void refineReturnValues(mlir::func::FuncOp func, mlir::OpBuilder builder,
                         int64_t waterline, int64_t output_val);
 void inferTypeForward(hecate::earth::ForwardMgmtInterface sop);
 
+llvm::SmallVector<mlir::Value, 4> attachOpid(mlir::func::FuncOp func);
 } // namespace earth
 } // namespace hecate
 

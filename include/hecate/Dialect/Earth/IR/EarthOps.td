@@ -433,6 +433,9 @@ def MulOp: Earth_Op<"mul", [Commutative]> {
     void processOperandsPARS(int64_t param);
     void processOperandsSNR(int64_t param);
     void processResultsEVA(int64_t param);
+    bool isValidated();
+    bool isBootstrappable();
+    bool overThreshold(float thr);
   }];
   code extraClassDefinition = arithClassDefinition #[{
     void $cppClass::processOperandsEVA(int64_t param){
@@ -510,6 +513,22 @@ def MulOp: Earth_Op<"mul", [Commutative]> {
         target = builder.create<RescaleOp>(getLoc(), target);
         rewriter.replaceAllUsesExcept(old, target, target.getDefiningOp());
       }
+    }
+
+    bool $cppClass::overThreshold(float thr) {
+      auto target = getResult().getType().dyn_cast<HEScaleTypeInterface>() ;
+      auto Rf = hecate::earth::EarthDialect::rescalingFactor;
+      return target.getScale() + target.getLevel() * Rf > hecate::earth::EarthDialect::bootstrapLevelUpperBound * Rf * thr;
+    }
+    bool $cppClass::isValidated() {
+      auto target = getResult().getType().dyn_cast<HEScaleTypeInterface>() ;
+      auto Rf = hecate::earth::EarthDialect::rescalingFactor;
+      return target.getScale() + target.getLevel() * Rf < hecate::earth::EarthDialect::bootstrapLevelUpperBound * Rf;
+    }
+    bool $cppClass::isBootstrappable() {
+      auto target = getResult().getType().dyn_cast<HEScaleTypeInterface>() ;
+      auto Rf = hecate::earth::EarthDialect::rescalingFactor;
+      return target.getScale() + target.getLevel() * Rf < (hecate::earth::EarthDialect::bootstrapLevelUpperBound - hecate::earth::EarthDialect::bootstrapLevelLowerBound + 1) * Rf;
     }
 
     bool $cppClass::isConsume() {

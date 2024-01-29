@@ -1,5 +1,8 @@
 
 #include "mlir/Bytecode/BytecodeWriter.h"
+#include "mlir/Dialect/LLVMIR/LLVMAttrs.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/IR/AsmState.h"
 #include "mlir/IR/Attributes.h"
 #include "mlir/IR/BuiltinOps.h"
@@ -19,6 +22,8 @@
 #include "mlir/Support/ToolUtilities.h"
 #include "mlir/Tools/ParseUtilities.h"
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
+#include "llvm/ADT/Twine.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileUtilities.h"
 #include "llvm/Support/InitLLVM.h"
@@ -201,6 +206,11 @@ void registerHecatePipeline(cl::opt<std::string> &outputFilename) {
       "output-val", cl::desc("Output value upper bound  of scale management"),
       cl::init(10)};
 
+  static cl::opt<float> threshold{
+      "threshold",
+      cl::desc("scale coverage threshold of DaCapo, 0 <= threshold <= 1"),
+      cl::init(0.5)};
+
   static cl::opt<bool> enable_printer{
       "enable-debug-printer",
       cl::desc(
@@ -376,13 +386,20 @@ void registerHecatePipeline(cl::opt<std::string> &outputFilename) {
         if (enable_check_smu)
           pm.addPass(hecate::earth::createSMUChecker());
 
-        /* pm.addNestedPass<func::FuncOp>(hecate::earth::createRemoveBootstrap());
-         */
+        pm.addNestedPass<func::FuncOp>(hecate::earth::createRemoveBootstrap());
+        pm.addNestedPass<func::FuncOp>(
+            hecate::earth::createBypassDetection({waterline, 0.5}));
+        pm.addNestedPass<func::FuncOp>(
+            hecate::earth::createCandidateSelection({waterline, output_val}));
+        pm.addNestedPass<func::FuncOp>(
+            hecate::earth::createDaCapoPlanner({waterline, output_val}));
+        pm.addNestedPass<func::FuncOp>(
+            hecate::earth::createBootstrapPlacement());
         pm.addNestedPass<func::FuncOp>(
             hecate::earth::createProactiveRescaling({waterline, output_val}));
         pm.addNestedPass<func::FuncOp>(hecate::earth::createEarlyModswitch());
-        pm.addNestedPass<func::FuncOp>(
-            hecate::earth::createFlexibleBootstrap());
+        pm.addPass(mlir::createCanonicalizerPass());
+        pm.addPass(mlir::createCSEPass());
 
         if (enable_check_smu)
           pm.addPass(hecate::earth::createSMUChecker());

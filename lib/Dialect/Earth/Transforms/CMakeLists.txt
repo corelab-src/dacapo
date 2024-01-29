@@ -2,11 +2,17 @@ add_mlir_dialect_library(EarthTransforms
  WaterlineRescaling.cpp
  ElideConstant.cpp
  PrivatizeConstant.cpp
+ BootstrapPlacement.cpp
+ CodeSegmentation.cpp
  Common.cpp
  UpscaleBubbling.cpp
  EarlyModswitch.cpp
  FlexibleBootstrap.cpp
  RemoveBootstrap.cpp
+ DaCapoPlanner.cpp
+ CoverageRecorder.cpp
+ BypassDetection.cpp
+ CandidateSelection.cpp
  SMUChecker.cpp
  SNRRescaling.cpp
  ProactiveRescaling.cpp

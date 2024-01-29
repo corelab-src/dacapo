@@ -134,6 +134,72 @@ def FlexibleBootstrap : Pass<"flexible-bootstrap", "::mlir::func::FuncOp"> {
       This pass optimizes the bootstrapping latency by lowering level as required.
   }];
 }
+def DaCapoPlanner : Pass<"dacapo-planner", "::mlir::func::FuncOp"> {
+  let summary = "Automatic bootstrapping placement driver pass";
+  let description = [{
+    This pass iteratively generates code segements, excepts bypass edges,
+         makes bootstrapping placement plan, generates code, evaluate the latency.}];
+  let options = [
+    Option<"waterline", "waterline", "int64_t", /*default=*/"40",
+    "The minimal result scale of rescaling">,
+    Option<"output_val", "output_val", "int64_t", /*default=*/"10",
+    "The maximum result value bits of return value">,
+  ];
+}
+
+def BootstrapPlacement : Pass<"bootstrapping-placement", "::mlir::func::FuncOp"> {
+  let summary = "Placement bootstrapping operationst based on target edges";
+  let description = [{
+    This pass places the bootstrapping operations to target edges.
+  }];
+}
+
+def CoverageRecorder : Pass<"coverage-recording", "::mlir::func::FuncOp"> {
+  let summary = "Recording Coverage";
+  let description = [{
+    This pass records the coverage of each operation.
+      The coverage means that the reacheable point(op) starting with bootstrapping.
+  }];
+  let options = [
+    Option<"waterline", "waterline", "int64_t", /*default=*/"40",
+    "The minimal result scale of rescaling">,
+    Option<"threshold", "threshold", "float", /*default=*/"0.5",
+    "The maximum result value bits of return value">,
+  ];
+}
+
+def BypassDetection : Pass<"bypass-detection", "::mlir::func::FuncOp"> {
+  let summary = "Detect Bypasses";
+  let description = [{
+    This pass checks whether the edge is bypassed-edge or not.
+  }];
+  let options = [
+    Option<"waterline", "waterline", "int64_t", /*default=*/"40",
+    "The minimal result scale of rescaling">,
+    Option<"threshold", "threshold", "float", /*default=*/"0.5",
+    "The maximum result value bits of return value">,
+  ];
+}
+def CandidateSelection : Pass<"candidate-selection", "::mlir::func::FuncOp"> {
+  let summary = "Select Candidates";
+  let description = [{
+    This pass selects candidates based on candidate analysis
+  }];
+  let options = [
+    Option<"waterline", "waterline", "int64_t", /*default=*/"40",
+    "The minimal result scale of rescaling">,
+    Option<"output_val", "output_val", "int64_t", /*default=*/"10",
+    "The maximum result value bits of return value">,
+  ];
+
+
+}
+def CodeSegmentation : Pass<"code-segmentation", "::mlir::func::FuncOp"> {
+  let summary = "Partition code using start, end edges info";
+  let description = [{
+    This pass make code segments by cutting edges of code .
+  }];
+}
 /* def ScaleManagementStructuring : Pass<> */
 
 

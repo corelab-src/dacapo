@@ -155,17 +155,15 @@ ConstantOpLowering::matchAndRewrite(hecate::earth::ConstantOp op,
   auto tt = op.getType()
                 .getElementType()
                 .dyn_cast<hecate::earth::HEScaleTypeInterface>();
-  if(hecate::earth::EarthDialect::bootstrapLevelUpperBound < 3) {
+  if (hecate::earth::EarthDialect::bootstrapLevelLowerBound > 0) {
     rewriter.replaceOpWithNewOp<ckks::EncodeOp>(
-      op, dst, adaptor.getValue().dyn_cast<IntegerAttr>().getInt(),
-      tt.getScale(),
-      init_level - tt.getLevel());
-  }
-  else {
+        op, dst, adaptor.getValue().dyn_cast<IntegerAttr>().getInt(),
+        tt.getScale(), init_level - tt.getLevel());
+  } else {
     rewriter.replaceOpWithNewOp<ckks::EncodeOp>(
-      op, dst, adaptor.getValue().dyn_cast<IntegerAttr>().getInt(),
-      tt.getScale(),
-      hecate::earth::EarthDialect::bootstrapLevelUpperBound - tt.getLevel());
+        op, dst, adaptor.getValue().dyn_cast<IntegerAttr>().getInt(),
+        tt.getScale(),
+        hecate::earth::EarthDialect::bootstrapLevelUpperBound - tt.getLevel());
   }
   return success();
 }
@@ -352,11 +350,14 @@ struct EarthToCKKSConversion
     ConversionTarget target(getContext());
 
     auto func = getOperation();
+    func.dump();
 
     mlir::RewritePatternSet patterns(&getContext());
 
     auto level_attr = func->getAttrOfType<IntegerAttr>("init_level");
-    int64_t base_level = level_attr ? level_attr.getInt() : 13;
+    int64_t base_level = level_attr
+                             ? level_attr.getInt()
+                             : hecate::earth::EarthDialect::levelUpperBound;
     hecate::PolyTypeConverter converter(base_level);
     target.addLegalDialect<hecate::ckks::CKKSDialect>();
     target.addLegalDialect<tensor::TensorDialect>();

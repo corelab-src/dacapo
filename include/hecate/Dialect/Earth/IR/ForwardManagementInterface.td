@@ -59,7 +59,33 @@ def ForwardMgmtInterface : OpInterface<"ForwardMgmtInterface"> {
     /*methodName=*/"processResultsSNR",
     /*args=*/(ins "int64_t":$param),
     /*methodBody=*/[{}], /*defaultImplementation=*/[{ return $_op.processResultsPARS(param); }]
+      >,
+    InterfaceMethod<
+      /*desc=*/[{Check that this is constant op.
+      }],
+    /*retType=*/"bool",
+    /*methodName=*/"overThreshold",
+    /*args=*/(ins "float":$thr),
+    /*methodBody=*/[{}], /*defaultImplementation=*/[{ return false; }]
+      >,
+    InterfaceMethod<
+      /*desc=*/[{Check that this is constant op.
+      }],
+    /*retType=*/"bool",
+    /*methodName=*/"isValidated",
+    /*args=*/(ins),
+    /*methodBody=*/[{}], /*defaultImplementation=*/[{ return true; }]
+      >,
+    InterfaceMethod<
+      /*desc=*/[{Check that this is constant op.
+      }],
+    /*retType=*/"bool",
+    /*methodName=*/"isBootstrappable",
+    /*args=*/(ins),
+    /*methodBody=*/[{}], /*defaultImplementation=*/[{ return true; }]
       >
+
+
       ];
 }
 
