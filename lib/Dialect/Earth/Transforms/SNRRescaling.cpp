@@ -59,15 +59,9 @@ struct SNRRescalingPass
     mlir::IRRewriter rewriter(builder);
     SmallVector<mlir::Type, 4> inputTypes;
     // Set function argument types
-    for (auto argval : func.getArguments()) {
-      argval.setType(
-          argval.getType().dyn_cast<RankedTensorType>().replaceSubElements(
-              [&](hecate::earth::HEScaleTypeInterface t) {
-                return t.switchScale(calcWaterline(smu, argval));
-              }));
+    hecate::earth::refineInputValues(func, builder, inputTypes, waterline,
+                                     output_val);
 
-      inputTypes.push_back(argval.getType());
-    }
     func.setFunctionType(builder.getFunctionType(
         inputTypes, func.getFunctionType().getResults()));
 

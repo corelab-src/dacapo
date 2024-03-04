@@ -38,31 +38,9 @@ struct ProactiveRescalingPass
     mlir::OpBuilder builder(func);
     mlir::IRRewriter rewriter(builder);
     SmallVector<mlir::Type, 4> inputTypes;
-    // Set function argument types
-    if (!func->hasAttr("segment_inputType")) {
-      for (auto argval : func.getArguments()) {
-        argval.setType(
-            argval.getType().dyn_cast<RankedTensorType>().replaceSubElements(
-                [&](hecate::earth::HEScaleTypeInterface t) {
-                  return t.switchScale(waterline);
-                }));
-        inputTypes.push_back(argval.getType());
-      }
-    } else {
-      auto &&inputType_attrs = func->getAttr("segment_inputType")
-                                   .dyn_cast<mlir::ArrayAttr>()
-                                   .getValue();
-      for (size_t i = 0; i < func.getNumArguments(); i++) {
-        auto argval = func.getArgument(i);
-        auto input_type = inputType_attrs[i]
-                              .dyn_cast<mlir::TypeAttr>()
-                              .getValue()
-                              .dyn_cast<hecate::earth::HEScaleTypeInterface>();
-        argval.setType(input_type);
-        inputTypes.push_back(argval.getType());
-      }
-    }
 
+    hecate::earth::refineInputValues(func, builder, inputTypes, waterline,
+                                     output_val);
     // Apply waterline rescaling for the operations
     func.walk([&](hecate::earth::ForwardMgmtInterface sop) {
       builder.setInsertionPointAfter(sop.getOperation());
