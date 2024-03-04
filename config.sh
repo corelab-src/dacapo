@@ -7,6 +7,7 @@ mkdir -p $HECATE/examples/traced
 mkdir -p $HECATE/examples/optimized/eva
 mkdir -p $HECATE/examples/optimized/elasm
 mkdir -p $HECATE/examples/optimized/dacapo
+mkdir -p $HECATE/examples/optimized/pars
 
 build-hopt()(
 cd $HECATE/build
@@ -57,30 +58,27 @@ hc-opt-test-timing() {
 hopt-timing-only $1 $2 $3 && hc-test $1 $2 $3
 }
 
-hopt-heaan-cpu() {
-hopt --$1 --ckks-config="$HECATE/profiled_heaan_cpu.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
-}
-
-hopt-heaan-gpu() {
-hopt --$1 --ckks-config="$HECATE/profiled_heaan_gpu.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
-}
-
-hopt-seal() {
-hopt --$1 --ckks-config="$HECATE/profiled_SEAL.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
-}
-
 hopt-lib-hw() {
 hopt --$1 --ckks-config="$HECATE/profiled_$4_$5.json" --waterline=$2 --enable-debug-printer $HECATE/examples/traced/$3.mlir --mlir-print-debuginfo --mlir-pretty-debuginfo --mlir-print-local-scope --mlir-disable-threading --mlir-timing --mlir-print-ir-after-failure -o $HECATE/examples/optimized/$1/$3.$2.mlir
+}
+
+hopt-lib-hww() {
+hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2 --enable-debug-printer $HECATE/examples/traced/$3.mlir --mlir-print-debuginfo --mlir-pretty-debuginfo --mlir-print-local-scope --mlir-disable-threading --mlir-timing --mlir-print-ir-after-failure -o $HECATE/examples/optimized/$1/$3.$2.mlir
 }
 
 hc-back-opt-test(){
 hopt-lib-hw $1 $2 $3 $4 $5 && hc-test $1 $2 $3 $4 $5
 }
 
-alias hopts-heaan-cpu=hopt-heaan-cpu
-alias hopts-heaan-gpu=hopt-heaan-gpu
-alias hopts-seal=hopt-seal
+hc-back-opt(){
+hopt-lib-hww $1 $2 $3 $4 $5
+}
+
+# alias hopts-heaan-cpu=hopt-heaan-cpu
+# alias hopts-heaan-gpu=hopt-heaan-gpu
+# alias hopts-seal=hopt-seal
 alias hbcot=hc-back-opt-test
+alias hbt=hc-back-opt
 
 alias hoptd=hopt-debug-print
 alias hopta=hopt-debug-print-all

@@ -14,8 +14,9 @@ We aim to support privacy-preserving machine learning and deep learning applicat
   * [Tutorial](#tutorial)
     + [Trace the example python file to Encrypted ARiTHmetic IR](#trace-the-example-python-file-to-encrypted-arithmetic-ir)
     + [Compile the traced Earth Hecate IR](#compile-the-traced-earth-ir)
-    + [Test the optimized code](#test-the-optimized-code)
-    + [One-liner for compilation and testing](#one-liner-for-compilation-and-testing)
+    + [Compile the traced Earth Hecate IR and Check the Optimized Code](#compile-the-traced-earth-ir-and-check-the-optimized-code)
+    <!-- + [Test the optimized code](#test-the-optimized-code) -->
+    <!-- + [One-liner for compilation and testing](#one-liner-for-compilation-and-testing) -->
   * [Papers](#papers)
   * [Citations](#citations)
 
@@ -123,40 +124,33 @@ hc-trace MLP
 ### Compile the traced Earth IR 
 
 ```bash
-hopts <eva|elasm> <waterline:integer> <example-name>
+hopts <pars|dacapo> <waterline:integer> <example-name>
 ```
 e.g., 
 ```bash
-hopts elasm 30 MLP
+hopts dacapo 40 ResNet
 ```
-
-### Test the optimized code 
-```bash
-hc-test <eva|elasm> <waterline:integer> <example-name>
-```
-e.g., 
-```bash
-hc-test elasm 30 MLP
-```
-
 This command will print like this:
 ```
-1.810851535
-9.63624118628367e-06
+Estimated Latency: 13.348852 (sec)
+Number of Bootstrapping: 19
 ```
 
-The first line shows the wall-clock time for FHE execution  
-The second line shows the RMS of the resulting error 
- 
-### One-liner for compilation and testing 
+### Compile the traced Earth IR and Check the optimized code 
 ```bash
-hcot <eva|elasm> <waterline:integer> <example-name>
+hbt <pars|dacapo> <waterline:integer> <example-name>
 ```
-With printing pass timings :
+e.g., 
 ```bash
-hcott <eva|elasm> <waterline:integer> <example-name>
+hbt dacapo 40 ResNet
 ```
+You can see the optimized code in "$hecate-compiler/examples/optimized/dacapo/ResNet.40.earth.mlir"
+
 ## Papers 
+**DaCapo: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption** 
+Seonyoung Cheon, Yongwoo Lee, Ju Min Lee, Dongkwan Kim, Sunchul Jung, Taekyung Kim, Dongyoon Lee, and Hanjun Kim  
+*33nd USENIX Security Symposium (USENIX Security)*, August 2024. 
+[[Prepublication](https://www.usenix.org/system/files/sec24summer-prepub-336-cheon.pdf)]
 
 **ELASM: Error-Latency-Aware Scale Management for Fully Homomorphic Encryption** [[abstract](https://www.usenix.org/conference/usenixsecurity23/presentation/lee-yongwoo)]   
 Yongwoo Lee, Seonyoung Cheon, Dongkwan Kim, Dongyoon Lee, and Hanjun Kim  
@@ -186,7 +180,18 @@ Yongwoo Lee, Seonyeong Heo, Seonyoung Cheon, Shinnung Jeong, Changsu Kim, Eunkyu
   author={Lee, Yongwoo and Cheon, Seonyoung and Kim, Dongkwan and Lee, Dongyoon and Kim, Hanjun},
   booktitle={{32nd} USENIX Security Symposium (USENIX Security 23)},
  year={2023},
- address = {Aneheim, CA},
+ address = {Anaheim, CA},
+ publisher = {USENIX Association},
+ month = aug
+}
+```
+```bibtex
+@INPROCEEDINGS{cheon:dacapo:sec,
+  title={{DaCapo}: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption},
+  author={Cheon, Seonyoung and Lee, Yongwoo and Kim, Dongkwan and Lee, Ju Min and Jung, Sunchul and Kim, Taekyung and Lee, Dongyoon and Kim, Hanjun},
+  booktitle={{33nd} USENIX Security Symposium (USENIX Security 24)},
+ year={2024},
+ address = {Philadelphia, CA},
  publisher = {USENIX Association},
  month = aug
 }
