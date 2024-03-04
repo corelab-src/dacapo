@@ -58,20 +58,38 @@ struct BypassDetectionPass
     for (std::thread &th : thres) {
       th.join();
     }
-
     // Organize the validLiveOuts
     for (auto a : ca.getEdges()) {
       auto v = ca.getValueInfo(a);
       mlir::SmallVector<int64_t, 4> validTargets;
+      /* llvm::errs() << a << " : "; */
       for (auto bp : v->getLiveOuts()) {
         auto vp = ca.getValueInfo(bp);
-        if (!vp->isBypassEdge()) {
+        if (!vp->isBypassEdge(a)) {
           validTargets.push_back(bp);
+          /* llvm::errs() << bp << " "; */
         }
+        /* else */
+        /*   llvm::errs() << " ( " << bp << " ), "; */
       }
+      /* llvm::errs() << "--> size is " << validTargets.size() << '\n'; */
       v->setValidLiveOuts(validTargets);
       ca.sortValidCandidates(a);
     }
+    /* for (auto a : ca.getEdges()) { */
+    /*   llvm::errs() << a << " : "; */
+    /*   for (auto b : ca.getTargets(a)) { */
+    /*     llvm::errs() << b << " "; */
+    /*   } */
+    /*   llvm::errs() << "----(thes : ) "; */
+    /*   llvm::errs() << ca.getValueInfo(a)->getThresholdOpid() << '\n'; */
+    /*   llvm::errs() << "----(before) "; */
+    /*   for (auto b : ca.getValueInfo(a)->getLiveOuts()) { */
+    /*     llvm::errs() << b << " "; */
+    /*   } */
+
+    /*   llvm::errs() << '\n'; */
+    /* } */
 
     markAnalysesPreserved<hecate::CandidateAnalysis>();
   }
@@ -86,8 +104,10 @@ struct BypassDetectionPass
     auto &&block = dup.getBody().front();
     auto &&operations = block.getOperations();
     mlir::OpBuilder builder(dup);
-    dup->setAttr("btp_target",
-                 builder.getDenseI64ArrayAttr(ca.getTargets(from)));
+    dup->setAttr("btp_target", builder.getDenseI64ArrayAttr(
+                                   ca.getValueInfo(from)->getLiveOuts()));
+    /* builder.getDenseI64ArrayAttr(ca.getTargets(from))); */
+    /* dup->setAttr("segment_return", builder.getDenseI64ArrayAttr({})); */
     mod.push_back(dup);
 
     if (pm.run(mod).failed()) {
@@ -111,13 +131,15 @@ struct BypassDetectionPass
         // PARS Scale Management
         builder.setInsertionPointAfter(sop.getOperation());
         sop.processOperandsPARS(waterline);
+        /* sop.processOperandsEVA(waterline); */
         inferTypeForward(sop);
         sop.processResultsPARS(waterline);
+        /* sop.processResultsEVA(waterline); */
         /////////////////////////////////////////
 
         // check over threshold and set bypass
         if (sop.overThreshold(threshold)) {
-          ca.getValueInfo(from)->setBypassEdge(opid);
+          ca.getValueInfo(from)->setThresholdOpid(opid);
           break;
         }
       }

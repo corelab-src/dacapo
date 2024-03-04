@@ -38,7 +38,6 @@ struct BootstrapPlacementPass
     auto &ca = getAnalysis<hecate::CandidateAnalysis>();
     auto &&btp_target =
         func->getAttrOfType<mlir::DenseI64ArrayAttr>("btp_target").asArrayRef();
-
     // Bootstrapping Placement based on btp_targets
     for (auto opid : btp_target) {
       if (opid == ca.getRetOpid())
@@ -52,6 +51,7 @@ struct BootstrapPlacementPass
         auto btp =
             builder.create<hecate::earth::BootstrapOp>(target.getLoc(), target);
         rewriter.replaceAllUsesExcept(old, btp, btp);
+        hecate::setIntegerAttr("opid", btp, opid);
       }
     }
   }
