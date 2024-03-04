@@ -1,5 +1,4 @@
 import hecate as hc
-import simfhe as sf
 import sys
 import poly
 from poly.models.ResNet import *
@@ -27,7 +26,7 @@ source_path = Path(__file__).resolve()
 source_dir = source_path.parent
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 val_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root=str(source_dir)+"/../data/CIFAR10", train=False, download=True, transform=transforms.Compose([
+        datasets.CIFAR10(root=str(source_dir)+"/../data/CIFAR10", train=False, download=False, transform=transforms.Compose([
         transforms.ToTensor(),
         normalize,
 ])),
@@ -46,10 +45,17 @@ def getModel():
 
 
 def preprocess(x):
-    # print(x.shape)
+    import json
+    lib_name = sys.argv[3]
+    hw_name = sys.argv[4]
+    config_name = f"profiled_{lib_name}_{hw_name}.json"
+    with open(str(source_dir)+"/../../"+config_name,'r') as f:
+        config = json.load(f)
     initial_shapes = {
     # Constant
-    "nt" : 2**16,
+    # "nt" : 2**16,
+    # "nt" : 2**14,
+    "nt" : config['polynomialDegree'] >> 1,
     "bb" : 32,
     # Input Characteristics (Cascaded)
     "ko" : 1,
@@ -90,8 +96,6 @@ if __name__ == "__main__" :
     a_compile_opt = int(sys.argv[2])
     hc.setLibnHW(sys.argv)
     stem = Path(__file__).stem
-    print("sim:", sf.simulate(f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm"))
-    
     hevm = hc.HEVM()
     stem = Path(__file__).stem
     hevm.load (f"traced/_hecate_{stem}.cst", f"optimized/{a_compile_type}/{stem}.{a_compile_opt}._hecate_{stem}.hevm")
