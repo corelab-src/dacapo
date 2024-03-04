@@ -1,4 +1,5 @@
 include MPCB.py
 include Poly.py
+include Func.py
 recursive-include poly/models *
 recursive-include poly/data *

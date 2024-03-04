@@ -19,13 +19,9 @@ import numpy as np
 import poly
 from poly.models.SqueezeNet import *
 from poly.MPCB import *
+from poly.Func import *
 
 import sys
-
-def poly2(x) :
-    out = models.MPCB.GenPoly(Poly.treeStr2,Poly.coeffStr2,  4, scale = 1.7)(x)
-    out[0] = hc.bootstrap(out[0])
-    return out 
 
 def getModel():
     from pathlib import Path
@@ -40,76 +36,21 @@ def getModel():
     model = model.eval()
     return model
 
-eps = 0.001
-
-
-def nprelu(x) : 
-    return np.array([ np.maximum (xx, 0) for xx in x], dtype = object)
-
-def checkError (M, mpcb) :
-    mpcb = torch.DoubleTensor(np.concatenate(mpcb).reshape(M.shape))
-    maxarg = torch.max(torch.abs((M.cuda()-mpcb.cuda())))
-    s = torch.argmax( (torch.abs(M.cuda()-mpcb.cuda())>eps).to(dtype=torch.int))
-    ssum = torch.sum(torch.abs(M.cuda() - mpcb.cuda()))
-    nsum = torch.sum(torch.abs(M.cuda()-mpcb.cuda())>eps)
-    if (maxarg > eps) :
-        print ("ERROR!!")
-    else :
-        print ("PASS")
-    print (f"num : {nsum}, errsum : {ssum}, first : {s}, max : {maxarg}, valmax : {torch.max(M)}, valmin : {torch.min(M)}")
-
-def HE_BN (close, mpp, bn, scale=1.0) :
-    G, H = abstractBN(bn)
-    mpcb = close["BN"](mpp, G, H)
-    return mpcb
-def HE_Conv (close, mpp, conv) :
-    mpcb =  close["MPC"] (mpp, conv.weight, conv.bias)
-    return mpcb
-
-def HE_ConvBN (close, mpp, conv, bn) :
-    mpcb =  close["MPCB"] (mpp, conv.weight, *abstractBN(bn))
-    return mpcb
-
-def HE_Max (close, mpp) :
-    mpcb =  close["MPD"] (mpp)
-    return mpcb
-
-def HE_Avg (close, mpp) :
-    mpcb =  close["MA"] (mpp)
-    return mpcb
-
-def HE_Concat (close, mpp_1, mpp_2) :
-    mpcb =  close["CC"] (mpp_1, mpp_2)
-    return mpcb
-
-def HE_DS (close, mpp) :
-    mpcb = close["DS"](mpp)
-    return mpcb
-
-def HE_Pool (close , mpp) :
-    return close["AP"](mpp)
-
-def HE_Linear(close, mpp, linear, p = 1.0, scale = 1.0) :
-    mpcb = Linear(mpp, linear.weight * p , linear.bias.cpu() / scale, 2**16)
-    return mpcb
-
-
 @hc.func("c")
 def SqueezeNet (ctxt) :
     model = getModel()
     model = model.type(torch.double)
-    # model = model.cpu()
     for p in model.parameters():
         p.requires_grad = False
-    # input_var = input_var.type(torch.double)
     input_var = np.empty((1), dtype= object)
     input_var[0] = ctxt
 
-    calculation = poly.GenPoly()
-    def mish_s (A) :
-        return A * (calculation(A)+0.5)
     def act (x) : 
-        return mish_s(x)
+        return HE_SiLU(x)
+        # return HE_ReLU(x)
+    def pooling (close, x):
+        return HE_Avg(close, x)
+        # return HE_Max(close, x)
     
     initial_shapes = {
         # Constant
@@ -125,14 +66,14 @@ def SqueezeNet (ctxt) :
     conv_1_shapes = CascadeConv(initial_shapes, model.module.conv_1.Conv2d)
     close = shapeClosure(**conv_1_shapes)
     out = HE_ConvBN(close, input_var,model.module.conv_1.Conv2d, model.module.conv_1.bn)
-    out[0] = hc.bootstrap(out[0]) # 1
     out = act (out)
+    out[0] = hc.bootstrap(out[0]) # 1
     block_in = conv_1_shapes
  
     print("avgpool_1")
     avgpool_1_shapes = CascadeMax (block_in, model.module.avgpool_1)
     close = shapeClosure(**avgpool_1_shapes)
-    out = HE_Avg(close, out)
+    out = pooling(close, out)
     block_in = avgpool_1_shapes
 
     print("fire_2")
@@ -209,7 +150,7 @@ def SqueezeNet (ctxt) :
     print("avgpool_4")
     avgpool_4_shapes = CascadeMax (block_in, model.module.avgpool_4)
     close = shapeClosure(**avgpool_4_shapes)
-    out = HE_Avg(close, out)
+    out = pooling(close, out)
     out[0] = hc.bootstrap(out[0]) # 8 - 5526
     #ori = ori.view(ori.size(0), -1)
     block_in = avgpool_4_shapes
@@ -309,7 +250,7 @@ def SqueezeNet (ctxt) :
     avgpool_8_shapes = CascadeMax (block_in, model.module.avgpool_8)
     close = shapeClosure(**avgpool_8_shapes)
     #out[0] = hc.bootstrap(out[0])
-    out = HE_Avg(close, out)
+    out = pooling(close, out)
     out[0] = hc.bootstrap(out[0]) # 16 - 16355
     #ori = ori.view(ori.size(0), -1)
     block_in = avgpool_8_shapes

@@ -1,5 +1,6 @@
 import poly.MPCB as MPCB
 import numpy as np
+import hecate as hc
 import pathlib
 import os
 
@@ -31,14 +32,17 @@ def GenPoly (degree = 16) :
     return MPCB.GenPoly(tree_var, coeff_var, degree)
 def sign (x) : 
     return poly3(poly2(poly1(x)))
-def relu (x) : 
-    return (0.5 + sign (x)) *  x
 def genRelu6 (B) : 
     return lambda x : relua(x, 6/B)
 
 def relua (x, a) : 
     return (sign (x) *  x) + (sign (x - a) * (a-x )) + (a/2)
 def maxx (a,b) :
+    def sign (x) :
+        out = poly2(poly1(x))
+        out[0] = hc.bootstrap(out[0])
+        out = poly3(out)
+        return out 
     input_var=np.empty((1),dtype=object)
     input_var[0]=a-b
     sign_var=sign(input_var)
@@ -49,4 +53,6 @@ def ReLU(z) :
 def rms (z) :
     return np.sqrt(np.mean(np.square(z)))
 
+def nprelu(x) : 
+    return np.array([ np.maximum (xx, 0) for xx in x], dtype = object)
 

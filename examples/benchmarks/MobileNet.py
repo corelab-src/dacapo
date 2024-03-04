@@ -21,6 +21,7 @@ import numpy as np
 import poly
 from poly.models.MobileNet import *
 from poly.MPCB import *
+from poly.Func import *
 
 
 import hecate as hc
@@ -40,42 +41,6 @@ def getModel():
     model = model.eval()
     return model
 
-eps = 0.001
-
-def HE_BN (mpp, bn, scale=1.0) :
-    G, H = abstractBN(bn)
-    mpcb = BN(mpp.cuda(), G, H/scale, 2**16)
-    return mpcb
-
-def HE_Conv (close, mpp, conv, bn) :
-    mpcb =  close["MPCB"] (mpp, conv.weight, *abstractBN(bn))
-    return mpcb
-
-def HE_Max (close, mpp) :
-    mpcb =  close["MP"] (mpp)
-    return mpcb
-
-def HE_Avg (close, mpp) :
-    mpcb =  close["MA"] (mpp)
-    return mpcb
-
-def HE_DwConv (close, mpp, conv, bn) :
-    G, H = abstractBN(bn)
-    mpcb =  close["DW"] (mpp, conv.weight, G, H+conv.bias)
-    return mpcb
-
-def HE_DS (close, mpp, sc) :
-    mpcb = close["DS"](mpp)
-    return mpcb
-
-def HE_Pool (close, mpp) :
-    return close["AP"](mpp)
-
-def HE_Linear(close, mpp, linear, p = 1.0, scale = 1.0) :
-    mpcb = Linear(mpp, linear.weight * p , linear.bias / scale, 2**16)
-    return mpcb
-
-
 @hc.func("c")
 def MobileNet (ctxt) :
     model = getModel()
@@ -84,13 +49,9 @@ def MobileNet (ctxt) :
     input_var = np.empty((1), dtype=object)
     input_var[0] = ctxt
 
-    calculation = poly.GenPoly()
-    def mish_s (A) :
-        return A * (calculation(A)+0.5)
-    def relu_s (x) : 
-        return Poly.relu(x) 
     def act(x) :
-        return mish_s(x)
+        return HE_SiLU(x)
+        # return HE_ReLU(x)
     initial_shapes = {
         # Constant
         #"nt" : 2**16,
@@ -104,7 +65,7 @@ def MobileNet (ctxt) :
     print("pre_layer")
     conv1_shapes = CascadeConv(initial_shapes, model.module.pre_layer.Conv2d)
     close = shapeClosure(**conv1_shapes)
-    out = HE_Conv(close, input_var, model.module.pre_layer.Conv2d, model.module.pre_layer.bn)
+    out = HE_ConvBN(close, input_var, model.module.pre_layer.Conv2d, model.module.pre_layer.bn)
     out[0] = hc.bootstrap(out[0]) # 1
     out = act(out)
     block_in = conv1_shapes
@@ -118,7 +79,7 @@ def MobileNet (ctxt) :
         
         inconv_0_pointwise_shapes = CascadeConv(inconv_0_shapes, model.module.Depthwise[i].pointwiseConv2d.Conv2d)
         close = shapeClosure(**inconv_0_pointwise_shapes)
-        out = HE_Conv(close, out, model.module.Depthwise[i].pointwiseConv2d.Conv2d, model.module.Depthwise[i].pointwiseConv2d.bn)
+        out = HE_ConvBN(close, out, model.module.Depthwise[i].pointwiseConv2d.Conv2d, model.module.Depthwise[i].pointwiseConv2d.bn)
         out[0] = hc.bootstrap(out[0])
         out = act(out)
         block_in = inconv_0_pointwise_shapes

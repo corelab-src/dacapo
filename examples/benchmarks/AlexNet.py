@@ -20,19 +20,9 @@ import numpy as np
 import poly
 from poly.models.AlexNet import *
 from poly.MPCB import *
+from poly.Func import *
 
 import sys
-
-def roll(A, i) :
-    return A.rotate(-i)
-
-def poly2(x) :
-    out = models.MPCB.GenPoly(Poly.treeStr2,Poly.coeffStr2,  4, scale = 1.7)(x)
-    # out[0] = hc.bootstrap(out[0])
-    return out 
-
-def nprelu(x) : 
-    return np.array([ np.maximum (xx, 0) for xx in x], dtype = object)
 
 def getModel():
     from pathlib import Path
@@ -45,48 +35,6 @@ def getModel():
     return model
 
 
-
-eps = 0.001
-
-
-def HE_BN (close, mpp, bn, scale=1.0) :
-    G, H = abstractBN(bn)
-    mpcb = close["BN"](mpp, G, H)
-    return mpcb
-
-def HE_Conv (close, mpp, conv) :
-    mpcb =  close["MPC"] (mpp, conv.weight)
-    return mpcb
-
-def HE_ConvBN (close, mpp, conv, bn) :
-    mpcb =  close["MPCB"] (mpp, conv.weight, *abstractBN(bn))
-    return mpcb
-
-def HE_Max (close, mpp) :
-    mpcb =  close["MPD"] (mpp)
-    return mpcb
-
-def HE_Avg (close, mpp) :
-    mpcb =  close["MA"] (mpp)
-    return mpcb
-
-def HE_DS (close, mpp) :
-    mpcb = close["DS"](mpp)
-    return mpcb
-
-def HE_Pool (close, mpp) :
-    return close["AP"](mpp)
-def HE_Linear(close, mpp, linear, p = 1.0, scale = 1.0) :
-    mpcb = Linear(mpp, linear.weight * p , linear.bias.cpu() / scale, 2**16)
-    return mpcb
-
-def HE_ReshapeLinear(close, mpp, linear, p = 1.0, scale = 1.0, reshape = {}) :
-    weight = Reshape (linear.weight, reshape)
-    mpcb = Linear(mpp, weight * p , linear.bias.cpu() / scale, 2**16)
-    return mpcb
-
-
-
 @hc.func("c")
 def AlexNet (ctxt) :
 
@@ -97,12 +45,12 @@ def AlexNet (ctxt) :
     input_var = np.empty((1), dtype=object)
     input_var[0] = ctxt
 
-    calculation = poly.GenPoly()
-    def mish_s (A) :
-        return A * (calculation(A)+0.5)
     def act (x) : 
-        # x[0] = hc.bootstrap(x[0])
-        return mish_s(x)
+        # return HE_SiLU(x) 
+        return HE_ReLU(x)
+    def pooling(close, x):
+        # return HE_Avg(close, x)
+        return HE_Max(close, x)
 
     initial_shapes = {
         # Constant
@@ -129,7 +77,7 @@ def AlexNet (ctxt) :
     print("avgpool_1")
     avgpool_1_shapes = CascadeMax (block_in, model.module.avgpool_1)
     close = shapeClosure(**avgpool_1_shapes)
-    out = HE_Avg(close, out)
+    out = pooling(close, out)
     #out[0] = hc.bootstrap(out[0]) # 3 - 1341
     block_in = avgpool_1_shapes
     
@@ -144,7 +92,7 @@ def AlexNet (ctxt) :
     print("avgpool_2")
     avgpool_2_shapes = CascadeMax (block_in, model.module.avgpool_2)
     close = shapeClosure(**avgpool_2_shapes)
-    out = HE_Avg(close, out)
+    out = pooling(close, out)
     out[0] = hc.bootstrap(out[0]) # 5 - 14479
     block_in = avgpool_2_shapes
 
@@ -177,7 +125,7 @@ def AlexNet (ctxt) :
     print("avgpool_3")
     avgpool_3_shapes = CascadeMax (block_in, model.module.avgpool_3)
     close = shapeClosure(**avgpool_3_shapes)
-    out = HE_Avg(close, out)
+    out = pooling(close, out)
     out[0] = hc.bootstrap(out[0]) # 9 - 37879
     block_in = avgpool_3_shapes
     

@@ -20,8 +20,8 @@ import sys
 import poly
 from poly.models.ResNet import *
 from poly.MPCB import *
+from poly.Func import *
 
-mish = nn.SiLU()
 
 def getModel():
     # model_dict = torch.load("../data/resnet20.silu.model", map_location=torch.device('cpu'))
@@ -34,21 +34,6 @@ def getModel():
     model = model.eval()
     return model
 
-def HE_Conv (close, mpp, conv, bn) :
-    mpcb =  close["MPCB"] (mpp, conv.weight, *abstractBN(bn))
-    return mpcb
-def HE_DS (close, mpp) :
-    mpcb = close["DS"](mpp)
-    return mpcb
-
-def HE_Pool (close, mpp) :
-    return close["AP"](mpp)
-
-def HE_Linear(close, mpp, linear, p = 1.0, scale = 1.0) :
-    # mpcb = close["OP"](mpp)
-    # mpcb = Linear(mpp, linear.weight * p , linear.bias / scale, 2**16)
-    mpcb = Linear(mpp, linear.weight * p , linear.bias / scale, 2**15)
-    return mpcb
 
 @hc.func("c")
 def ResNet (ctxt) :
@@ -60,13 +45,9 @@ def ResNet (ctxt) :
     input_var = np.empty((1), dtype=object)
     input_var[0] = ctxt
 
-    calculation = poly.GenPoly()
-    def mish_s (A) :
-        return A * (calculation(A)+0.5)
-    def relu_s (x) : 
-        return Poly.relu(x) 
     def act(x) :
-        return mish_s(x)
+        return HE_SiLU(x)
+        # return HE_ReLU(x)
     initial_shapes = {
         # Constant
         "nt" : 2**16,
@@ -79,7 +60,7 @@ def ResNet (ctxt) :
     conv1_shapes = CascadeConv(initial_shapes, model.module.conv1)
     close = shapeClosure(**conv1_shapes)
     # out = HE_Conv(MPCB, MPP(input_var),model.module.conv1, model.module.bn1)
-    out = HE_Conv(close, input_var,model.module.conv1, model.module.bn1)
+    out = HE_ConvBN(close, input_var,model.module.conv1, model.module.bn1)
     out[0] = hc.bootstrap(out[0])
     out = act(out)
     block_in = conv1_shapes
@@ -89,12 +70,12 @@ def ResNet (ctxt) :
         dsout = out
         inconv1_shapes = CascadeConv (block_in, model.module.layer1[i].conv1)
         close = shapeClosure(**inconv1_shapes)
-        out = HE_Conv(close, out, model.module.layer1[i].conv1, model.module.layer1[i].bn1)
+        out = HE_ConvBN(close, out, model.module.layer1[i].conv1, model.module.layer1[i].bn1)
         out[0] = hc.bootstrap(out[0])
         out = act (out)
         inconv2_shapes = CascadeConv (inconv1_shapes, model.module.layer1[i].conv2)
         close = shapeClosure(**inconv2_shapes)
-        out = HE_Conv(close, out,model.module.layer1[i].conv2, model.module.layer1[i].bn2)
+        out = HE_ConvBN(close, out,model.module.layer1[i].conv2, model.module.layer1[i].bn2)
         out = out +dsout
         out[0] = hc.bootstrap(out[0])
         out = act (out)
@@ -110,12 +91,12 @@ def ResNet (ctxt) :
             dsout = out
         inconv1_shapes = CascadeConv (block_in, model.module.layer2[i].conv1)
         close = shapeClosure(**inconv1_shapes)
-        out = HE_Conv(close, out, model.module.layer2[i].conv1, model.module.layer2[i].bn1)
+        out = HE_ConvBN(close, out, model.module.layer2[i].conv1, model.module.layer2[i].bn1)
         out[0] = hc.bootstrap(out[0])
         out = act (out)
         inconv2_shapes = CascadeConv (inconv1_shapes, model.module.layer2[i].conv2)
         close = shapeClosure(**inconv2_shapes)
-        out = HE_Conv(close,  out, model.module.layer2[i].conv2, model.module.layer2[i].bn2)
+        out = HE_ConvBN(close,  out, model.module.layer2[i].conv2, model.module.layer2[i].bn2)
         out = out +dsout
         out[0] = hc.bootstrap(out[0])
         out = act (out)
@@ -131,12 +112,12 @@ def ResNet (ctxt) :
             dsout = out
         inconv1_shapes = CascadeConv (block_in, model.module.layer3[i].conv1)
         close = shapeClosure(**inconv1_shapes)
-        out = HE_Conv(close, out, model.module.layer3[i].conv1, model.module.layer3[i].bn1)
+        out = HE_ConvBN(close, out, model.module.layer3[i].conv1, model.module.layer3[i].bn1)
         out[0] = hc.bootstrap(out[0])
         out = act (out)
         inconv2_shapes = CascadeConv (inconv1_shapes, model.module.layer3[i].conv2)
         close = shapeClosure(**inconv2_shapes)
-        out = HE_Conv(close, out, model.module.layer3[i].conv2, model.module.layer3[i].bn2)
+        out = HE_ConvBN(close, out, model.module.layer3[i].conv2, model.module.layer3[i].bn2)
         out= out + dsout
         out[0] = hc.bootstrap(out[0])
         out = act (out)
