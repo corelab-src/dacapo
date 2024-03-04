@@ -47,7 +47,7 @@ struct CoverageRecorderPass
     auto &&inputType_attrs = dup->getAttr("segment_inputType")
                                  .dyn_cast<mlir::ArrayAttr>()
                                  .getValue();
-    for (int i = 0; i < dup.getNumArguments(); i++) {
+    for (size_t i = 0; i < dup.getNumArguments(); i++) {
       auto argval = dup.getArgument(i);
       auto input_type = inputType_attrs[i]
                             .dyn_cast<mlir::TypeAttr>()
@@ -67,8 +67,10 @@ struct CoverageRecorderPass
         // PARS Scale Management
         builder.setInsertionPointAfter(sop.getOperation());
         sop.processOperandsPARS(waterline);
+        /* sop.processOperandsEVA(waterline); */
         inferTypeForward(sop);
         sop.processResultsPARS(waterline);
+        /* sop.processResultsEVA(waterline); */
         /////////////////////////////////////////
 
         // Find Bootstrapping Coverage
@@ -84,6 +86,8 @@ struct CoverageRecorderPass
         }
       }
     }
+    /* llvm::errs() << "from End: " << from << " cv : " << coverage */
+    /*              << " bc : " << bootCoverage << '\n'; */
     dup.erase();
     func->setAttr("coverages",
                   builder.getDenseI64ArrayAttr({coverage, bootCoverage}));
