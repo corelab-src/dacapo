@@ -52,7 +52,6 @@ struct CodeSegmentationPass
       for (uint64_t i = 0; i < ret.size(); i++) {
         func->walk([&](hecate::earth::BootstrapOp bop) {
           auto btp = hecate::getIntegerAttr("opid", bop);
-          /* values.push_back(val); */
           if (ret[i] == btp) {
             rets.push_back(bop);
             return;
@@ -76,25 +75,16 @@ struct CodeSegmentationPass
     for (auto arg : func.getArguments()) {
       inputTypes.push_back(arg.getType());
     }
-    /* llvm::errs() << "bypassTyope.size" << bypassTypes.size() << '\n'; */
     for (uint64_t i = 0; i < inputs.size(); i++) {
       auto &&target = values[inputs[i]];
-      /* target.dump(); */
-      /* llvm::errs() << "check bypass : " << bypassTypes.size() << '\n'; */
-      /* auto &&isBypass = bypassTypes[i].dyn_cast<mlir::BoolAttr>().getValue();
-       */
       auto arg = func.front().addArgument(target.getType(), func.getLoc());
-      /* hecate::setIntegerAttr("is_bypassed", arg, isBypass); */
       rewriter.replaceAllUsesWith(target, arg);
       inputTypes.push_back(arg.getType());
     }
 
     // set Function Type
     for (auto ret : func.getRegion().front().getTerminator()->getOperands()) {
-      /* auto opid = hecate::getIntegerAttr("opid", ret); */
       retTypes.push_back(ret.getType());
-      /* hecate::setIntegerAttr("is_bypassed", ret, */
-      /*                        ca.getValueInfo(opid)->isBypassEdge(to)); */
     }
     func.setFunctionType(builder.getFunctionType(inputTypes, retTypes));
 

@@ -3,7 +3,9 @@
 #include <HEaaN/Plaintext.hpp>
 #include <HEaaN/device/CudaTools.hpp>
 #include <HEaaN/device/Device.hpp>
+#include <any>
 #include <cassert>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -46,6 +48,9 @@ struct HEAAN_HEVM {
   std::unique_ptr<HEaaN::Bootstrapper> bootstrapper;
   std::unique_ptr<HEaaN::Decryptor> decryptor;
   std::unique_ptr<HEaaN::EnDecoder> endecoder;
+  /* std::chrono::microseconds boot_time; */
+  uint64_t boot_time = 0;
+  uint64_t boot_cnt = 0;
 
   static const int N = 17;
   static const int L = 16;
@@ -102,8 +107,8 @@ struct HEAAN_HEVM {
   }
   void printInfo() {
     int encodeOnline = 2;
-    std::cout << "polyDegree: " << N << '\n';
-    std::cout << "encodeOnline: " << encodeOnline << "\n\n";
+    /* std::cout << "polyDegree: " << N << '\n'; */
+    /* std::cout << "encodeOnline: " << encodeOnline << "\n\n"; */
   }
 
   void loadHEAAN(char *dir) {
@@ -276,7 +281,7 @@ struct HEAAN_HEVM {
   }
 
   void encode_internal(HEaaN::Plaintext &dst, std::vector<double> src,
-                       int8_t level, int8_t scale) {
+                       int8_t level, uint64_t scale) {
     HEaaN::u64 log_slot = N - 1;
     HEaaN::Message datas(log_slot, 0.0);
 
@@ -382,7 +387,14 @@ struct HEAAN_HEVM {
     if (debug) {
       std::cout << scalec[src] << " " << ciphers[src].getLevel() << std::endl;
     }
+    auto time_start = std::chrono::high_resolution_clock::now();
     bootstrapper->bootstrap(ciphers[src], ciphers[dst], targetLevel, false);
+    HEaaN::CudaTools::cudaDeviceSynchronize();
+    auto time_end = std::chrono::high_resolution_clock::now();
+    auto time_diff = std::chrono::duration_cast<std::chrono::microseconds>(
+        time_end - time_start);
+    boot_time += time_diff.count();
+    boot_cnt++;
     scalec[dst] = ciphers[dst].getCurrentScaleFactor();
   }
 
@@ -449,6 +461,8 @@ struct HEAAN_HEVM {
       }
       }
     }
+    /* std::cout << "boot_time : " << boot_time << '\n'; */
+    /* std::cout << "boot_cnt : " << boot_cnt << '\n'; */
   }
 };
 

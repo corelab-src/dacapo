@@ -118,7 +118,7 @@ hc-trace <example-name>
 ```
 e.g., 
 ```bash
-hc-trace MLP
+hc-trace ResNet
 ```
 
 ### Compile the traced Earth IR 
@@ -147,7 +147,7 @@ hbt dacapo 40 ResNet
 You can see the optimized code in "$hecate-compiler/examples/optimized/dacapo/ResNet.40.earth.mlir"
 
 ## Papers 
-**DaCapo: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption** 
+**DaCapo: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption**\
 Seonyoung Cheon, Yongwoo Lee, Ju Min Lee, Dongkwan Kim, Sunchul Jung, Taekyung Kim, Dongyoon Lee, and Hanjun Kim  
 *33nd USENIX Security Symposium (USENIX Security)*, August 2024. 
 [[Prepublication](https://www.usenix.org/system/files/sec24summer-prepub-336-cheon.pdf)]

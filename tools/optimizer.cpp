@@ -442,8 +442,6 @@ void registerHecatePipeline(cl::opt<std::string> &outputFilename) {
           pm.addPass(hecate::earth::createSMUChecker());
 
         pm.addNestedPass<func::FuncOp>(
-            hecate::earth::createLocalBypassDetection());
-        pm.addNestedPass<func::FuncOp>(
             hecate::earth::createProactiveRescaling({waterline, output_val}));
         pm.addNestedPass<func::FuncOp>(hecate::earth::createEarlyModswitch());
 

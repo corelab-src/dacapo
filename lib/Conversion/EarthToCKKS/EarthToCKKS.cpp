@@ -350,7 +350,6 @@ struct EarthToCKKSConversion
     ConversionTarget target(getContext());
 
     auto func = getOperation();
-    func.dump();
 
     mlir::RewritePatternSet patterns(&getContext());
 

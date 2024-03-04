@@ -138,40 +138,30 @@ def setLibnHW (argv=None):
             if len(argv) == 5:
                 if(argv[4].upper() in LibnHW_mapping[run_library]):
                     run_hardware = argv[4].upper()
-                    print("library:",run_library)
-                    print("hardware:",run_hardware)
                 else:
                     print("Not supported",argv[4].upper())
                     print("Suppoerted hardware :", LibnHW_mapping[run_library])
                     exit()
             else:
                 run_hardware = LibnHW_mapping[run_library][0]
-                print("library:",run_library)
-                print("hardware:",run_hardware)
         elif(argv[3].upper() in HWnLib_mapping.keys()):
             run_hardware = argv[3].upper()
             if len(argv) == 5:
                 if(argv[4].upper() in HWnLib_mapping[run_hardware]):
                     run_library = argv[4].upper()
-                    print("library:",run_library)
-                    print("hardware:",run_hardware)
                 else:
                     print("Not supported",argv[4].upper())
                     print("Suppoerted library :", HWnLib_mapping[run_hardware])
                     exit()        
             else:
                 run_library = HWnLib_mapping[run_hardware][0]
-                print("library:",run_library)
-                print("hardware:",run_hardware)
         else:
             print("Not supported",argv[3])
             print("Supported library :",LibnHW_mapping.keys())
             print("Supported hardware :",HWnLib_mapping.keys())
             exit()        
-    else:
+    # else:
         #        # For default
-        print("library:",run_library)
-        print("hardware:",run_hardware)
 #        run_library = list(LibnHW_mapping.keys())[0]
 #        run_hardware = LibnHW_mapping[run_library][0]
 
@@ -227,6 +217,7 @@ class HEVM :
 
     def run (self) : 
         lw.run(self.vm)
+        lw.printMem(self.vm)
 
     def setInput(self, i, data) :
         if not isinstance(data, np.ndarray) :
@@ -241,7 +232,6 @@ class HEVM :
         lw.setToGPU(self.vm, ongpu)
 
     def getOutput (self) : 
-        lw.printMem(self.vm)
         if(run_library == "HEAAN"):
             result = np.zeros( (self.reslen, 1 << 16), dtype=np.float64)
             data = np.zeros(  1 << 16, dtype=np.float64)
@@ -258,14 +248,21 @@ class HEVM :
             result[i] = data
         return result
     
-    def printer(self, latency, rms) :
+    def printer(self, latency, rms, mem_usage = 0.0) :
         import re
         bench = re.search(r"optimized/(.*)/(.*)\.(.*)\._", self.hevm_path)
-        print("opt:", bench.group(1))
+        print("======================================")
+        print("---------------Option-----------------")
+        print("compiler:", bench.group(1))
         print("benchname:", bench.group(2))
         print("waterline:", bench.group(3))
+        print("library:", run_library)
+        print("device:", run_hardware)
+        print("---------------Result-----------------")
         print("latency:", latency)
         print("rms:", rms)
+        print("memory_usage:", mem_usage)
+        print("======================================")
         print()
 
 

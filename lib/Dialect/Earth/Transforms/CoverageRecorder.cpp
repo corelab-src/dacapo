@@ -67,10 +67,8 @@ struct CoverageRecorderPass
         // PARS Scale Management
         builder.setInsertionPointAfter(sop.getOperation());
         sop.processOperandsPARS(waterline);
-        /* sop.processOperandsEVA(waterline); */
         inferTypeForward(sop);
         sop.processResultsPARS(waterline);
-        /* sop.processResultsEVA(waterline); */
         /////////////////////////////////////////
 
         // Find Bootstrapping Coverage
@@ -86,8 +84,6 @@ struct CoverageRecorderPass
         }
       }
     }
-    /* llvm::errs() << "from End: " << from << " cv : " << coverage */
-    /*              << " bc : " << bootCoverage << '\n'; */
     dup.erase();
     func->setAttr("coverages",
                   builder.getDenseI64ArrayAttr({coverage, bootCoverage}));

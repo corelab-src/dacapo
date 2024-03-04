@@ -57,7 +57,6 @@ struct DaCapoPlannerPass
       auto tp = mlir::RankedTensorType::get(
           llvm::SmallVector<int64_t, 1>{1},
           builder.getType<hecate::earth::CipherType>(waterline, 0));
-      /* bypassInputTypes[inputTypes.size()] = tp; */
       inputTypes.push_back(tp);
       inputBypasses.push_back(true);
     }
@@ -73,27 +72,15 @@ struct DaCapoPlannerPass
     pm.addNestedPass<func::FuncOp>(hecate::earth::createCodeSegmentation());
     pm.addNestedPass<func::FuncOp>(
         hecate::earth::createProactiveRescaling({waterline, output_val}));
-    /* pm.addNestedPass<func::FuncOp>(hecate::earth::createUpscaleBubbling());
-     */
-    /* pm.addPass(mlir::createCanonicalizerPass()); */
-    /* pm.addNestedPass<func::FuncOp>( */
-    /*     hecate::earth::createWaterlineRescaling({waterline, output_val})); */
-    /* pm.addNestedPass<func::FuncOp>( */
-    /*     hecate::earth::createSNRRescaling({waterline, output_val})); */
     pm.addNestedPass<func::FuncOp>(hecate::earth::createEarlyModswitch());
     pm.addPass(mlir::createCanonicalizerPass());
     pm.addPass(mlir::createCSEPass());
-    /* pm.addNestedPass<func::FuncOp>(hecate::earth::createFlexibleBootstrap());
-     */
     pm.addNestedPass<func::FuncOp>(hecate::earth::createLatencyEstimator());
 
     pmC.addNestedPass<func::FuncOp>(hecate::earth::createBootstrapPlacement());
     pmC.addNestedPass<func::FuncOp>(hecate::earth::createCodeSegmentation());
-    /* pmC.addNestedPass<func::FuncOp>( */
-    /*     hecate::earth::createLocalBypassDetection()); */
     pmC.addNestedPass<func::FuncOp>(
         hecate::earth::createCoverageRecorder({waterline, 0.5}));
-    /* llvm::dbgs() << "Return Opid : " << ca.getRetOpid() << '\n'; */
 
     int64_t setNum =
         func->getAttrOfType<mlir::IntegerAttr>("selected_set").getInt();
@@ -157,9 +144,6 @@ struct DaCapoPlannerPass
         auto dup = func.clone();
         dup->setAttr("cutted_edge",
                      builder.getDenseI64ArrayAttr({to, ca.getRetOpid()}));
-        /* dup->setAttr("btp_target", */
-        /*              builder.getDenseI64ArrayAttr(ca.getTargets(to,
-         * setNum))); */
         dup->setAttr("btp_target",
                      builder.getDenseI64ArrayAttr(ca.getTargets(to, setNum)));
         dup->setAttr("segment_input", builder.getDenseI64ArrayAttr(
@@ -170,16 +154,6 @@ struct DaCapoPlannerPass
         dup->setAttr("segment_inputBypasses",
                      builder.getBoolArrayAttr(std::get<4>(bestPlan[to])));
         dup->setAttr("segment_returnBypasses", builder.getBoolArrayAttr({}));
-        /* builder.getBoolArrayAttr(ca.getBypassTypeOfLiveOuts(to))); */
-        /* llvm::dbgs() << "segment bypassType [" << to << "]:"; */
-        /* for (auto aa : ca.getBypassTypeOfLiveOuts(to)) { */
-
-        // print Bypass Type
-        /* for (auto aa : std::get<4>(bestPlan[to])) { */
-        /*   llvm::dbgs() << aa << " "; */
-        /* } */
-        /* llvm::dbgs() << '\n'; */
-
         mod.push_back(dup);
         if (pmC.run(mod).failed()) {
           llvm::dbgs() << "pmC Pass failed" << '\n';
@@ -192,55 +166,53 @@ struct DaCapoPlannerPass
         ca.pushFromCoverage(to, mlir::SmallVector<int64_t, 2>(coverages));
         dup.erase();
       }
-      /* LLVM_DEBUG( */
-      llvm::dbgs() << '\n';
-      llvm::dbgs() << "-------------BestPlan Until " << to << '\n';
-      llvm::dbgs() << " latency : " << std::get<0>(bestPlan[to]) << '\n';
-      llvm::dbgs() << " cutted Edges : ";
-      for (auto a : std::get<1>(bestPlan[to]))
-        llvm::dbgs() << a << " ";
-      llvm::dbgs() << '\n';
-      llvm::dbgs() << " to retType : ";
-      for (auto a : std::get<2>(bestPlan[to])) {
-        llvm::dbgs() << a << " ";
-      }
-      llvm::dbgs() << '\n';
-      llvm::dbgs() << " to liveouts bypass type : ";
-      for (auto a : std::get<4>(bestPlan[to])) {
-        llvm::dbgs() << a << " ";
-      }
-      llvm::dbgs() << '\n';
+      LLVM_DEBUG(
+          llvm::dbgs() << '\n';
+          llvm::dbgs() << "-------------BestPlan Until " << to << '\n';
+          llvm::dbgs() << " latency : " << std::get<0>(bestPlan[to]) << '\n';
+          llvm::dbgs() << " cutted Edges : ";
+          for (auto a
+               : std::get<1>(bestPlan[to])) llvm::dbgs()
+          << a << " ";
+          llvm::dbgs() << '\n';
+          llvm::dbgs() << " to retType : "; for (auto a
+                                                 : std::get<2>(bestPlan[to])) {
+            llvm::dbgs() << a << " ";
+          } llvm::dbgs() << '\n';
+          llvm::dbgs() << " to liveouts bypass type : ";
+          for (auto a
+               : std::get<4>(bestPlan[to])) {
+            llvm::dbgs() << a << " ";
+          } llvm::dbgs()
+          << '\n';
 
-      llvm::dbgs() << '\n';
-      llvm::dbgs() << "--------------------------\n";
-      if (to > 0) {
-        /* std::get<3>(bestPlan[to]).dump(); */
-        llvm::dbgs() << '\n';
-        llvm::dbgs() << '\n';
-      }
-      /* ); */
+          llvm::dbgs() << '\n'; llvm::dbgs() << "--------------------------\n";
+          if (to > 0) {
+            std::get<3>(bestPlan[to]).dump();
+            llvm::dbgs() << '\n';
+            llvm::dbgs() << '\n';
+          });
     }
 
     auto targets =
         ca.sortTargets(setNum, std::get<1>(bestPlan[ca.getRetOpid()]));
 
-    llvm::outs() << llvm::format("Estimated Latency : %lf (sec) \n",
+    llvm::outs() << llvm::format("Estimated Latency: %lf (sec) \n",
                                  std::get<0>(bestPlan[ca.getRetOpid()]) /
                                      1000000);
-    llvm::outs() << "Number of Bootstrapping : " << targets.size() << '\n';
+    llvm::outs() << "Number of Bootstrapping: " << targets.size() << '\n';
 
-    /* LLVM_DEBUG( */
-    llvm::dbgs() << "Estimated Latency : "
-                 << std::get<0>(bestPlan[ca.getRetOpid()]) << '\n';
-    /* std::get<3>(bestPlan[ca.getRetOpid()]).dump(); */
-    llvm::dbgs() << " FINAL Bootstrapping Target : " << targets.size() << '\n';
-    llvm::dbgs() << "RetOpid : " << ca.getRetOpid() << '\n';
-    llvm::dbgs() << "--------------------------\n";
-    for (auto dd : std::get<1>(bestPlan[ca.getRetOpid()]))
-      llvm::dbgs() << dd << " ";
-    llvm::dbgs() << '\n';
-
-    /* ); */
+    LLVM_DEBUG(llvm::dbgs() << "Estimated Latency : "
+                            << std::get<0>(bestPlan[ca.getRetOpid()]) << '\n';
+               std::get<3>(bestPlan[ca.getRetOpid()]).dump();
+               llvm::dbgs()
+               << " FINAL Bootstrapping Target : " << targets.size() << '\n';
+               llvm::dbgs() << "RetOpid : " << ca.getRetOpid() << '\n';
+               llvm::dbgs() << "--------------------------\n";
+               for (auto dd
+                    : std::get<1>(bestPlan[ca.getRetOpid()])) llvm::dbgs()
+               << dd << " ";
+               llvm::dbgs() << '\n';);
     func->setAttr("btp_target", builder.getDenseI64ArrayAttr(targets));
     markAnalysesPreserved<hecate::CandidateAnalysis>();
   }
