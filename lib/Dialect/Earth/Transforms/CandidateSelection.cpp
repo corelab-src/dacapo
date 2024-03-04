@@ -17,6 +17,7 @@ namespace earth {
 } // namespace hecate
 
 using namespace mlir;
+#define DEBUG_TYPE "Debug"
 
 namespace {
 /// Pass to bufferize Arith ops.
@@ -49,6 +50,7 @@ struct CandidateSelectionPass
       mod.push_back(dup);
       if (pm.run(mod).succeeded()) {
         func->setAttr("selected_set", builder.getI64IntegerAttr(i));
+        LLVM_DEBUG(llvm::dbgs() << "selected _set : " << i << '\n';);
         ca.finalizeCandidates(i);
         dup.erase();
         break;

@@ -20,15 +20,17 @@ public:
 
   mlir::SmallVector<int64_t, 4> getLiveIns() const;
   mlir::SmallVector<int64_t, 4> getLiveOuts() const;
-  bool isBypassEdge() const;
+  bool isBypassEdge(int64_t to) const;
   int64_t getCoverage() const;
   int64_t getBootCoverage() const;
   int64_t getDeadOpid() const;
+  int64_t getThresholdOpid() const;
   mlir::SmallVector<int64_t, 4> getValidLiveOuts() const;
 
   void setLiveOuts(mlir::SmallVector<int64_t, 4> outs);
   void setLiveIns(mlir::SmallVector<int64_t, 4> ins);
-  void setBypassEdge(int64_t overThr);
+  void setThresholdOpid(int64_t OverThr);
+  void setBypassEdge();
   void setCoverage(int64_t);
   void setBootCoverage(int64_t);
   void setDeadOpid(int64_t);
@@ -48,7 +50,7 @@ private:
   bool isBypass = false;
   int64_t bootCoverage = -1;
   int64_t coverage = -1;
-
+  int64_t thresholdOpid = std::numeric_limits<int64_t>::max();
   // except bypassed edges
   mlir::SmallVector<int64_t, 4> validLiveOuts;
 };
@@ -64,9 +66,12 @@ public:
 
   mlir::SmallVector<int64_t, 4> getTargets(int64_t opid) const;
   mlir::SmallVector<int64_t, 4> getTargets(int64_t opid, int64_t setNum) const;
+  mlir::SmallVector<int64_t, 4> getTargets(int64_t from, int64_t to,
+                                           int64_t setNum) const;
   mlir::SmallVector<int64_t, 4> getCandidateSet(size_t size) const;
   mlir::SmallVector<int64_t, 4> getCandidates() const;
   mlir::SmallVector<int64_t, 4> getEdges() const;
+  mlir::SmallVector<bool, 4> getBypassTypeOfLiveOuts(int64_t opid);
 
   size_t getMaxNumOuts() const;
   size_t getNumValues() const;
@@ -74,6 +79,7 @@ public:
   size_t getNumEdges() const;
   int64_t getRetOpid() const;
 
+  void setBypassEdges(int64_t from, int64_t OverThr);
   void sortValidCandidates(int64_t opid);
   void finalizeCandidates(int64_t setNum);
   void pushFromCoverage(int64_t from, mlir::SmallVector<int64_t, 2> coverages);
@@ -86,6 +92,8 @@ private:
   mlir::SmallVector<int64_t, 4> candidates;
   mlir::SmallVector<int64_t, 4> edges;
   llvm::DenseMap<size_t, mlir::SmallVector<int64_t, 4>> candidateSet;
+  llvm::DenseMap<std::pair<int64_t, int64_t>, mlir::SmallVector<int64_t, 4>>
+      segToBypasses;
 
   llvm::SmallVector<ValueInfo, 4> values;
   int64_t retOpid;

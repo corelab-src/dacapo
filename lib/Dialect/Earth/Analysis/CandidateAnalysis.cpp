@@ -73,6 +73,7 @@ mlir::SmallVector<int64_t, 4> hecate::CandidateAnalysis::getEdges() const {
 mlir::SmallVector<int64_t, 4> hecate::CandidateAnalysis::getCandidates() const {
   return candidates;
 }
+
 mlir::SmallVector<int64_t, 4>
 hecate::CandidateAnalysis::getCandidateSet(size_t size) const {
   auto &&set = candidateSet.find(size);
@@ -94,11 +95,50 @@ mlir::SmallVector<int64_t, 4>
 hecate::CandidateAnalysis::getTargets(int64_t opid, int64_t setNum) const {
   if (opid == retOpid)
     return {};
-  if (values[opid].getValidLiveOuts().size() == setNum)
-    return values[opid].getValidLiveOuts();
-  else
+  /* if (values[opid].getValidLiveOuts().size() == setNum) */
+  /*   return values[opid].getValidLiveOuts(); */
+  /* else */
+  /*   return values[opid].getLiveOuts(); */
+  if (values[opid].getLiveOuts().size() == setNum)
     return values[opid].getLiveOuts();
+  else
+    return values[opid].getValidLiveOuts();
 }
+mlir::SmallVector<int64_t, 4>
+hecate::CandidateAnalysis::getTargets(int64_t from, int64_t to,
+                                      int64_t setNum) const {
+  if (from == retOpid)
+    return {};
+  if (values[from].getValidLiveOuts().size() == setNum) {
+    mlir::SmallVector<int64_t, 4> segLiveOuts = values[from].getValidLiveOuts();
+    for (auto tt : values[from].getLiveOuts()) {
+      if (!values[tt].isBypassEdge(from))
+        continue;
+      for (auto user : values[tt].getValue().getUsers()) {
+        auto useOpid = hecate::getIntegerAttr("opid", user->getResult(0));
+        if (useOpid > from && useOpid < to) {
+          segLiveOuts.push_back(tt);
+          break;
+        }
+      }
+    }
+    /* return values[from].getValidLiveOuts(); */
+    return segLiveOuts;
+  } else
+    return values[from].getLiveOuts();
+}
+mlir::SmallVector<bool, 4>
+hecate::CandidateAnalysis::getBypassTypeOfLiveOuts(int64_t opid) {
+  mlir::SmallVector<bool, 4> bypassTypeOfLiveOuts;
+  for (auto tt : values[opid].getLiveOuts()) {
+    bool bb = values[tt].isBypassEdge(opid);
+    bypassTypeOfLiveOuts.push_back(bb);
+    /* hecate::setIntegerAttr("is_bypassed", getValueInfo(tt)->getValue(), bb);
+     */
+  }
+  return bypassTypeOfLiveOuts;
+}
+
 ValueInfo *hecate::CandidateAnalysis::getValueInfo(int64_t opid) {
   return &values[opid];
 }
@@ -131,24 +171,24 @@ mlir::SmallVector<int64_t, 4>
 hecate::CandidateAnalysis::sortTargets(int64_t setNum,
                                        mlir::SmallVector<int64_t, 4> opids) {
   mlir::SmallVector<int64_t, 4> sortedTargets;
+  /* llvm::errs() << "final targets\n"; */
   for (auto a : opids) {
+    /* llvm::errs() << a << " : "; */
     for (auto b : getTargets(a, setNum)) {
+      /* llvm::errs() << b << " "; */
       auto &&itr = std::find(sortedTargets.begin(), sortedTargets.end(), b);
       if (itr == sortedTargets.end()) {
         sortedTargets.push_back(b);
       }
     }
+    /* llvm::errs() << '\n'; */
   }
   return sortedTargets;
 }
 
 void hecate::CandidateAnalysis::finalizeCandidates(int64_t setNum) {
   candidates.push_back(0);
-  /* llvm::errs() << "setNum " << setNum << '\n'; */
   for (int i = 1; i <= setNum; i++) {
-    /* for (auto a : getCandidateSet(i)) { */
-    /*   llvm::errs() << a << " "; */
-    /* } */
     candidates.append(getCandidateSet(i));
   }
   candidates.push_back(getRetOpid());
@@ -160,6 +200,8 @@ void hecate::CandidateAnalysis::pushFromCoverage(
     int64_t from, mlir::SmallVector<int64_t, 2> coverages) {
   auto c = coverages.front();
   auto bc = coverages.back();
+  getValueInfo(from)->setCoverage(c);
+  getValueInfo(from)->setBootCoverage(bc);
   if (c < 0)
     c = getRetOpid();
   if (bc < 0)
@@ -170,6 +212,15 @@ void hecate::CandidateAnalysis::pushFromCoverage(
     } else if (to == getRetOpid() && c == getRetOpid()) {
       toFromMap[to].push_back(from);
     }
+  }
+  return;
+}
+
+void hecate::CandidateAnalysis::setBypassEdges(int64_t from, int64_t overThr) {
+  auto v = getValueInfo(from);
+  auto deadOpid = v->getDeadOpid();
+  if (deadOpid > overThr) {
+    getValueInfo(from)->setBypassEdge();
   }
   return;
 }
@@ -188,6 +239,10 @@ void hecate::ValueInfo::setCoverage(int64_t c) {
   coverage = c;
   return;
 }
+void hecate::ValueInfo::setThresholdOpid(int64_t overThr) {
+  thresholdOpid = overThr;
+  return;
+}
 void hecate::ValueInfo::setBootCoverage(int64_t bc) {
   bootCoverage = bc;
   return;
@@ -196,14 +251,11 @@ void hecate::ValueInfo::setDeadOpid(int64_t dead) {
   deadOpid = dead;
   return;
 }
-void hecate::ValueInfo::setBypassEdge(int64_t overThr) {
+void hecate::ValueInfo::setBypassEdge() {
   if (!v)
     return;
-  if (deadOpid > overThr) {
-    isBypass = true;
-    hecate::setIntegerAttr("is_bypassed", v, 1);
-    return;
-  }
+  isBypass = true;
+  hecate::setIntegerAttr("is_bypassed", v, 1);
   return;
 }
 void hecate::ValueInfo::setValidLiveOuts(mlir::SmallVector<int64_t, 4> outs) {
@@ -219,7 +271,22 @@ mlir::SmallVector<int64_t, 4> hecate::ValueInfo::getLiveOuts() const {
   return liveOuts;
 }
 int64_t hecate::ValueInfo::getCoverage() const { return coverage; }
-bool hecate::ValueInfo::isBypassEdge() const { return isBypass; }
+bool hecate::ValueInfo::isBypassEdge(int64_t to) const {
+  if (thresholdOpid <= to)
+    return true;
+  bool isBypass = true;
+  for (auto user : getValue().getUsers()) {
+    if (auto sop = dyn_cast<hecate::earth::HEScaleOpInterface>(user)) {
+      auto useOpid = hecate::getIntegerAttr("opid", sop->getResult(0));
+      if (useOpid < thresholdOpid) {
+        if (to < useOpid)
+          isBypass = false;
+      }
+    }
+  }
+  return isBypass;
+}
+int64_t hecate::ValueInfo::getThresholdOpid() const { return thresholdOpid; }
 int64_t hecate::ValueInfo::getBootCoverage() const { return bootCoverage; }
 int64_t hecate::ValueInfo::getDeadOpid() const { return deadOpid; }
 mlir::SmallVector<int64_t, 4> hecate::ValueInfo::getValidLiveOuts() const {
