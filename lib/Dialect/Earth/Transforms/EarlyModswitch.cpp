@@ -12,6 +12,7 @@
 #include "hecate/Dialect/Earth/IR/HEParameterInterface.h"
 #include "hecate/Dialect/Earth/Transforms/Passes.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/IR/BuiltinTypes.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 #include "llvm/Support/Debug.h"
 
@@ -72,8 +73,10 @@ struct EarlyModswitchPass
                 dyn_cast<hecate::earth::ModswitchOp>(op.getOperation())) {
           // Modswitch movement can be absorbed into modswitch
           oop.setDownFactor(oop.getDownFactor() + minModFactor);
-          oop.getResult().setType(oop.getScaleType().switchLevel(
-              oop.getRescaleLevel() + minModFactor));
+          oop.getResult()
+              .getType()
+              .dyn_cast<hecate::earth::HEScaleTypeInterface>()
+              .switchLevel(oop.getRescaleLevel() + minModFactor);
         } else {
           // Modswitch is moved to the operands
           for (int i = 0; i < op->getNumOperands(); i++) {

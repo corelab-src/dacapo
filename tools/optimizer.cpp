@@ -182,12 +182,8 @@ int main(int argc, char **argv) {
     llvm::errs() << errorMessage << "\n";
     return asMainReturnCode(failure());
   }
-
-  if (failed(MlirOptMain(output->os(), std::move(file), passPipeline, registry,
-                         splitInputFile, verifyDiagnostics, verifyPasses,
-                         allowUnregisteredDialects, false, emitBytecode,
-                         /*implicitModule=*/!noImplicitModule,
-                         dumpPassPipeline))) {
+  MlirOptMainConfig config = MlirOptMainConfig::createFromCLOptions();
+  if (failed(MlirOptMain(output->os(), std::move(file), registry, config))) {
     return asMainReturnCode(failure());
   }
 

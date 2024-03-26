@@ -110,11 +110,12 @@ void hecate::earth::refineInputValues(mlir::func::FuncOp func,
   // Set function argument types
   if (!func->hasAttr("segment_inputType")) {
     for (auto argval : func.getArguments()) {
-      argval.setType(
-          argval.getType().dyn_cast<RankedTensorType>().replaceSubElements(
-              [&](hecate::earth::HEScaleTypeInterface t) {
-                return t.switchScale(waterline);
-              }));
+      argval.setType(argval.getType()
+                         .dyn_cast<RankedTensorType>()
+                         .getElementType()
+                         .replace([&](hecate::earth::HEScaleTypeInterface t) {
+                           return t.switchScale(waterline);
+                         }));
       inputTypes.push_back(argval.getType());
     }
   } else {
@@ -139,7 +140,8 @@ void hecate::earth::inferTypeForward(hecate::earth::ForwardMgmtInterface sop) {
   auto iop = dyn_cast<mlir::InferTypeOpInterface>(oop);
   SmallVector<Type, 4> retTypes;
   if (iop.inferReturnTypes(oop->getContext(), oop->getLoc(), oop->getOperands(),
-                           oop->getAttrDictionary(), oop->getRegions(),
+                           oop->getAttrDictionary(),
+                           oop->getPropertiesStorage(), oop->getRegions(),
                            retTypes)
           .succeeded()) {
     oop->getResults().back().setType(retTypes.back());

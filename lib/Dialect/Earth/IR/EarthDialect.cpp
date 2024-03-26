@@ -2,6 +2,7 @@
 
 #include "hecate/Dialect/Earth/IR/EarthOps.h"
 #include "mlir/IR/DialectImplementation.h"
+#include "mlir/IR/OperationSupport.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/TypeSupport.h"
 #include "mlir/IR/Types.h"
@@ -37,33 +38,33 @@ struct ScaleTypeTensorModel
   }
   hecate::earth::HEScaleTypeInterface toCipher(Type t) const {
     auto tt = t.dyn_cast<RankedTensorType>();
-    return RankedTensorType::get(
+    return dyn_cast<hecate::earth::HEScaleTypeInterface>(RankedTensorType::get(
         tt.getShape(), tt.getElementType()
                            .dyn_cast<hecate::earth::HEScaleTypeInterface>()
-                           .toCipher());
+                           .toCipher()));
   }
   hecate::earth::HEScaleTypeInterface toPlain(Type t) const {
     auto tt = t.dyn_cast<RankedTensorType>();
-    return RankedTensorType::get(
+    return dyn_cast<hecate::earth::HEScaleTypeInterface>(RankedTensorType::get(
         tt.getShape(), tt.getElementType()
                            .dyn_cast<hecate::earth::HEScaleTypeInterface>()
-                           .toPlain());
+                           .toPlain()));
   }
   hecate::earth::HEScaleTypeInterface switchScale(Type t,
                                                   unsigned scale) const {
     auto tt = t.dyn_cast<RankedTensorType>();
-    return RankedTensorType::get(
+    return dyn_cast<hecate::earth::HEScaleTypeInterface>(RankedTensorType::get(
         tt.getShape(), tt.getElementType()
                            .dyn_cast<hecate::earth::HEScaleTypeInterface>()
-                           .switchScale(scale));
+                           .switchScale(scale)));
   }
   hecate::earth::HEScaleTypeInterface switchLevel(Type t,
                                                   unsigned level) const {
     auto tt = t.dyn_cast<RankedTensorType>();
-    return RankedTensorType::get(
+    return dyn_cast<hecate::earth::HEScaleTypeInterface>(RankedTensorType::get(
         tt.getShape(), tt.getElementType()
                            .dyn_cast<hecate::earth::HEScaleTypeInterface>()
-                           .switchLevel(level));
+                           .switchLevel(level)));
   }
   unsigned getScale(Type t) const {
     if (auto scaleType = t.dyn_cast<mlir::RankedTensorType>()
@@ -179,11 +180,11 @@ void hecate::earth::EarthDialect::setCKKSParameters(llvm::StringRef filename) {
 }
 
 ::mlir::LogicalResult hecate::earth::ConstantOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = ConstantOpAdaptor(operands, attributes, regions);
+  auto op = ConstantOpAdaptor(operands, attributes, properties, regions);
 
   inferredReturnTypes.push_back(mlir::RankedTensorType::get(
       llvm::SmallVector<int64_t, 1>{1}, PlainType::get(context, 0, 0)));
@@ -200,11 +201,11 @@ void hecate::earth::RotateOp::getCanonicalizationPatterns(
 }
 
 ::mlir::LogicalResult hecate::earth::RescaleOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = RescaleOpAdaptor(operands, attributes, regions);
+  auto op = RescaleOpAdaptor(operands, attributes, properties, regions);
   auto lScale = earth::getScaleType(op.getValue());
   inferredReturnTypes.push_back(
       lScale.switchLevel(lScale.getLevel() + 1)
@@ -221,11 +222,11 @@ void hecate::earth::ModswitchOp::getCanonicalizationPatterns(
 }
 
 ::mlir::LogicalResult hecate::earth::ModswitchOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = ModswitchOpAdaptor(operands, attributes, regions);
+  auto op = ModswitchOpAdaptor(operands, attributes, properties, regions);
   auto lScale = earth::getScaleType(op.getValue());
   if (op.getDownFactor() >= 0) {
     inferredReturnTypes.push_back(
@@ -243,11 +244,11 @@ void hecate::earth::UpscaleOp::getCanonicalizationPatterns(
 }
 
 ::mlir::LogicalResult hecate::earth::UpscaleOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = UpscaleOpAdaptor(operands, attributes, regions);
+  auto op = UpscaleOpAdaptor(operands, attributes, properties, regions);
   auto lScale = earth::getScaleType(op.getValue());
   if (op.getUpFactor() >= 0) {
     inferredReturnTypes.push_back(
@@ -263,11 +264,11 @@ void hecate::earth::BootstrapOp::getCanonicalizationPatterns(
 }
 
 ::mlir::LogicalResult hecate::earth::BootstrapOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = BootstrapOpAdaptor(operands, attributes, regions);
+  auto op = BootstrapOpAdaptor(operands, attributes, properties, regions);
   auto lScale = earth::getScaleType(op.getValue());
   // accumulated scale > maximum scale limit
   if (lScale.getLevel() <=
@@ -285,11 +286,11 @@ void hecate::earth::AddOp::getCanonicalizationPatterns(
 }
 
 ::mlir::LogicalResult hecate::earth::AddOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = AddOpAdaptor(operands, attributes, regions);
+  auto op = AddOpAdaptor(operands, attributes, properties, regions);
   auto lScale = earth::getScaleType(op.getLhs());
   auto lTensor = earth::getTensorType(op.getLhs());
   auto rScale = earth::getScaleType(op.getRhs());
@@ -310,11 +311,11 @@ void hecate::earth::MulOp::getCanonicalizationPatterns(
 }
 
 ::mlir::LogicalResult hecate::earth::MulOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = MulOpAdaptor(operands, attributes, regions);
+  auto op = MulOpAdaptor(operands, attributes, properties, regions);
   auto lScale = earth::getScaleType(op.getLhs());
   auto lTensor = earth::getTensorType(op.getLhs());
   auto rScale = earth::getScaleType(op.getRhs());

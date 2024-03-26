@@ -94,11 +94,12 @@ struct BypassDetectionPass
     }
 
     for (auto argval : dup.getArguments()) {
-      argval.setType(
-          argval.getType().dyn_cast<RankedTensorType>().replaceSubElements(
-              [&](hecate::earth::HEScaleTypeInterface t) {
-                return t.switchScale(waterline);
-              }));
+      argval.setType(argval.getType()
+                         .dyn_cast<RankedTensorType>()
+                         .getElementType()
+                         .replace([&](hecate::earth::HEScaleTypeInterface t) {
+                           return t.switchScale(waterline);
+                         }));
     }
 
     for (auto &&op : operations) {

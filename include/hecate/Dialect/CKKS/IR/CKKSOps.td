@@ -19,7 +19,7 @@ include "hecate/Dialect/CKKS/IR/PolyTypeInterface.td"
 def CKKS_Dialect : Dialect {
   let name = "ckks";
   let cppNamespace = "::hecate::ckks";
-  let useFoldAPI= kEmitFoldAdaptorFolder;
+  /* let useFoldAPI= kEmitFoldAdaptorFolder; */
   let useDefaultTypePrinterParser = 1;
 }
 
@@ -42,7 +42,8 @@ Op<CKKS_Dialect, mnemonic, !listconcat(traits, [DeclareOpInterfaceMethods<Destin
   string arithClassDefinition = [{
     // - ScaleOpInterface Non-default methods
     // - isSingle, isConsume is remaining methods
-    std::pair<int64_t, int64_t> $cppClass::getDpsInitsPositionRange (){ return {0, 1};}
+    /* std::pair<int64_t, int64_t> $cppClass::getDpsInitsPositionRange() { return {0, 1};} */
+    ::mlir::MutableOperandRange $cppClass::getDpsInitsMutable() { return {getOperation(), 0, 1};}
   }];
   let extraClassDefinition = arithClassDefinition;
 }

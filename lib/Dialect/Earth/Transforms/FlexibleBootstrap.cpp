@@ -53,8 +53,10 @@ struct FlexibleBootstrapPass
           return; // Go to next operation
         }
         bop.setTargetLevel(bop.getTargetLevel() + minModFactor);
-        bop.getResult().setType(
-            bop.getScaleType().switchLevel(bop.getTargetLevel()));
+        bop.getResult()
+            .getType()
+            .dyn_cast<hecate::earth::HEScaleTypeInterface>()
+            .switchLevel(bop.getTargetLevel());
 
         // Change the user modswitch downFactors
         for (auto &&oper : bop.getResult().getUsers()) {

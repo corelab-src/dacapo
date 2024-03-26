@@ -30,7 +30,7 @@ def Earth_Dialect : Dialect {
     static int64_t levelUpperBound;
     static int64_t levelLowerBound;
   }];
-  let useFoldAPI= kEmitFoldAdaptorFolder;
+  /* let useFoldAPI= kEmitFoldAdaptorFolder; */
   let useDefaultTypePrinterParser = 1;
 }
 
@@ -258,10 +258,9 @@ def BootstrapOp : Unary_Earth_Op<"bootstrap"> {
     }
 
     void $cppClass::processResultsEVA(int64_t param){
-      /*   getResult().setType( */
-      /*       getScaleType().switchScale(hecate::earth::EarthDialect::rescalingFactor)); */
-      getResult().setType(
-          getScaleType().switchLevel(0));
+      /* getResult().setType( */
+      /*     getScaleType().switchLevel(0)); */
+      getType().dyn_cast<HEScaleTypeInterface>().switchLevel(0);
       setTargetLevel(getType().dyn_cast<HEScaleTypeInterface>().getLevel());
     }
 

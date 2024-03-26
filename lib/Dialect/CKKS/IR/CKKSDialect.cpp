@@ -28,8 +28,8 @@ using namespace mlir;
 /* #include "hecate/Dialect/CKKS/IR/EarthCanonicalizerPattern.inc" */
 
 struct PolyTypeTensorModel
-    : public hecate::ckks::PolyTypeInterface::ExternalModel<
-          PolyTypeTensorModel, mlir::RankedTensorType> {
+    : public hecate::ckks::PolyTypeInterface::ExternalModel<PolyTypeTensorModel,
+                                                            RankedTensorType> {
   unsigned getNumPoly(Type t) const {
     if (auto polyType = t.dyn_cast<mlir::RankedTensorType>()
                             .getElementType()
@@ -50,21 +50,23 @@ struct PolyTypeTensorModel
   }
 
   hecate::ckks::PolyTypeInterface switchLevel(Type t, unsigned level) const {
-    return mlir::RankedTensorType::get(
-        t.dyn_cast<mlir::RankedTensorType>().getShape(),
-        t.dyn_cast<mlir::RankedTensorType>()
-            .getElementType()
-            .dyn_cast<hecate::ckks::PolyTypeInterface>()
-            .switchLevel(level));
+    return dyn_cast<hecate::ckks::PolyTypeInterface>(
+        mlir::RankedTensorType::get(
+            t.dyn_cast<mlir::RankedTensorType>().getShape(),
+            t.dyn_cast<mlir::RankedTensorType>()
+                .getElementType()
+                .dyn_cast<hecate::ckks::PolyTypeInterface>()
+                .switchLevel(level)));
   }
   hecate::ckks::PolyTypeInterface switchNumPoly(Type t,
                                                 unsigned num_poly) const {
-    return mlir::RankedTensorType::get(
-        t.dyn_cast<mlir::RankedTensorType>().getShape(),
-        t.dyn_cast<mlir::RankedTensorType>()
-            .getElementType()
-            .dyn_cast<hecate::ckks::PolyTypeInterface>()
-            .switchNumPoly(num_poly));
+    return dyn_cast<hecate::ckks::PolyTypeInterface>(
+        mlir::RankedTensorType::get(
+            t.dyn_cast<mlir::RankedTensorType>().getShape(),
+            t.dyn_cast<mlir::RankedTensorType>()
+                .getElementType()
+                .dyn_cast<hecate::ckks::PolyTypeInterface>()
+                .switchNumPoly(num_poly)));
   }
 };
 
@@ -84,12 +86,12 @@ void hecate::ckks::CKKSDialect::initialize() {
 }
 
 ::mlir::LogicalResult hecate::ckks::EncodeOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
 
-  auto op = EncodeOpAdaptor(operands, attributes, regions);
+  auto op = EncodeOpAdaptor(operands, attributes, properties, regions);
   auto dPoly = ckks::getPolyType(op.getDst());
   if (dPoly.getNumPoly() == 1 &&
       (dPoly.getLevel() == op.getLevel() || dPoly.getLevel() == 0)) {
@@ -101,11 +103,11 @@ void hecate::ckks::CKKSDialect::initialize() {
 }
 
 ::mlir::LogicalResult hecate::ckks::RescaleCOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = RescaleCOpAdaptor(operands, attributes, regions);
+  auto op = RescaleCOpAdaptor(operands, attributes, properties, regions);
   auto dPoly = ckks::getPolyType(op.getDst());
   auto lPoly = ckks::getPolyType(op.getSrc());
   if (dPoly.getNumPoly() == lPoly.getNumPoly() &&
@@ -118,11 +120,11 @@ void hecate::ckks::CKKSDialect::initialize() {
 }
 
 ::mlir::LogicalResult hecate::ckks::ModswitchCOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = ModswitchCOpAdaptor(operands, attributes, regions);
+  auto op = ModswitchCOpAdaptor(operands, attributes, properties, regions);
   auto dPoly = ckks::getPolyType(op.getDst());
   auto lPoly = ckks::getPolyType(op.getSrc());
   if (dPoly.getNumPoly() == lPoly.getNumPoly() &&
@@ -136,11 +138,11 @@ void hecate::ckks::CKKSDialect::initialize() {
 }
 
 ::mlir::LogicalResult hecate::ckks::BootstrapCOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = BootstrapCOpAdaptor(operands, attributes, regions);
+  auto op = BootstrapCOpAdaptor(operands, attributes, properties, regions);
   auto dPoly = ckks::getPolyType(op.getDst());
   auto lPoly = ckks::getPolyType(op.getSrc());
   if (dPoly.getNumPoly() == lPoly.getNumPoly()) {
@@ -152,11 +154,11 @@ void hecate::ckks::CKKSDialect::initialize() {
 }
 
 ::mlir::LogicalResult hecate::ckks::AddCPOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = AddCPOpAdaptor(operands, attributes, regions);
+  auto op = AddCPOpAdaptor(operands, attributes, properties, regions);
   auto dPoly = ckks::getPolyType(op.getDst());
   auto lPoly = ckks::getPolyType(op.getLhs());
   auto rPoly = ckks::getPolyType(op.getRhs());
@@ -172,11 +174,11 @@ void hecate::ckks::CKKSDialect::initialize() {
 }
 
 ::mlir::LogicalResult hecate::ckks::MulCPOp::inferReturnTypes(
-    ::mlir::MLIRContext *context, ::llvm::Optional<::mlir::Location> location,
+    ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
     ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
-    ::mlir::RegionRange regions,
+    ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
     ::llvm::SmallVectorImpl<::mlir::Type> &inferredReturnTypes) {
-  auto op = AddCPOpAdaptor(operands, attributes, regions);
+  auto op = AddCPOpAdaptor(operands, attributes, properties, regions);
   auto dPoly = ckks::getPolyType(op.getDst());
   auto lPoly = ckks::getPolyType(op.getLhs());
   auto rPoly = ckks::getPolyType(op.getRhs());
