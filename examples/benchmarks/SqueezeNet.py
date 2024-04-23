@@ -50,7 +50,7 @@ def SqueezeNet (ctxt) :
         # return HE_ReLU(x)
     def pooling (close, x):
         return HE_Avg(close, x)
-        # return HE_Max(close, x)
+        # return HE_MaxPad(close, x)
     
     initial_shapes = {
         # Constant

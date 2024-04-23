@@ -23,13 +23,22 @@ def HE_ConvBN (close, mpp, conv, bn) :
     mpcb =  close["MPCB"] (mpp, conv.weight, *MPCB.abstractBN(bn))
     return mpcb
 
-def HE_Max (close, mpp) :
+def HE_MaxPad (close, mpp) :
     def maximum (a, b):
         out = Poly.maxx(a, b)
         out = hc.bootstrap(out)
         return out
     MPCB.maximum = maximum
     mpcb =  close["MPD"] (mpp)
+    return mpcb
+
+def HE_Max (close, mpp) :
+    def maximum (a, b):
+        out = Poly.maxx(a, b)
+        out = hc.bootstrap(out)
+        return out
+    MPCB.maximum = maximum
+    mpcb =  close["MP"] (mpp)
     return mpcb
 
 def HE_Avg (close, mpp) :

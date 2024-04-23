@@ -46,11 +46,11 @@ def AlexNet (ctxt) :
     input_var[0] = ctxt
 
     def act (x) : 
-        # return HE_SiLU(x) 
-        return HE_ReLU(x)
+        return HE_SiLU(x) 
+        # return HE_ReLU(x)
     def pooling(close, x):
-        # return HE_Avg(close, x)
-        return HE_Max(close, x)
+        return HE_Avg(close, x)
+        # return HE_MaxPad(close, x)
 
     initial_shapes = {
         # Constant
