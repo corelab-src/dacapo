@@ -272,15 +272,20 @@ mlir::SmallVector<int64_t, 4> hecate::ValueInfo::getLiveOuts() const {
 }
 int64_t hecate::ValueInfo::getCoverage() const { return coverage; }
 bool hecate::ValueInfo::isBypassEdge(int64_t to) const {
-  if (thresholdOpid <= to)
-    return true;
   bool isBypass = true;
+
+  if (thresholdOpid <= to)
+    return isBypass;
+  if (opid == to)
+    return false;
   for (auto user : getValue().getUsers()) {
     if (auto sop = dyn_cast<hecate::earth::HEScaleOpInterface>(user)) {
       auto useOpid = hecate::getIntegerAttr("opid", sop->getResult(0));
-      if (useOpid < thresholdOpid) {
-        if (to < useOpid)
-          isBypass = false;
+      if (useOpid <= thresholdOpid) {
+        if (to < useOpid) {
+          /* isBypass = false; */
+          return false;
+        }
       }
     }
   }
