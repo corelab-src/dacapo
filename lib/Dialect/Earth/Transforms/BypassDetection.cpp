@@ -29,10 +29,9 @@ namespace {
 struct BypassDetectionPass
     : public hecate::earth::impl::BypassDetectionBase<BypassDetectionPass> {
   BypassDetectionPass() {}
-  BypassDetectionPass(hecate::earth::BypassDetectionOptions ops) {}
-  BypassDetectionPass(std::pair<int64_t, int64_t> ops) {
-    this->waterline = ops.first;
-    this->threshold = ops.second;
+  BypassDetectionPass(hecate::earth::BypassDetectionOptions ops) {
+    this->waterline = ops.waterline;
+    this->threshold = ops.threshold;
   }
 
   void runOnOperation() override {

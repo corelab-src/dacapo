@@ -25,10 +25,9 @@ struct CandidateSelectionPass
     : public hecate::earth::impl::CandidateSelectionBase<
           CandidateSelectionPass> {
   CandidateSelectionPass() {}
-  CandidateSelectionPass(hecate::earth::CandidateSelectionOptions ops) {}
-  CandidateSelectionPass(std::pair<int64_t, int64_t> ops) {
-    this->waterline = ops.first;
-    this->output_val = ops.second;
+  CandidateSelectionPass(hecate::earth::CandidateSelectionOptions ops) {
+    this->waterline = ops.waterline;
+    this->output_val = ops.output_val;
   }
 
   void runOnOperation() override {

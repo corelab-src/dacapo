@@ -31,10 +31,9 @@ namespace {
 struct DaCapoPlannerPass
     : public hecate::earth::impl::DaCapoPlannerBase<DaCapoPlannerPass> {
   DaCapoPlannerPass() {}
-  DaCapoPlannerPass(hecate::earth::DaCapoPlannerOptions ops) {}
-  DaCapoPlannerPass(std::pair<int64_t, int64_t> ops) {
-    this->waterline = ops.first;
-    this->output_val = ops.second;
+  DaCapoPlannerPass(hecate::earth::DaCapoPlannerOptions ops) {
+    this->waterline = ops.waterline;
+    this->output_val = ops.output_val;
   }
 
   void runOnOperation() override {

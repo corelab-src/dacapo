@@ -25,10 +25,9 @@ namespace {
 struct CoverageRecorderPass
     : public hecate::earth::impl::CoverageRecorderBase<CoverageRecorderPass> {
   CoverageRecorderPass() {}
-  CoverageRecorderPass(hecate::earth::CoverageRecorderOptions ops) {}
-  CoverageRecorderPass(std::pair<int64_t, int64_t> ops) {
-    this->waterline = ops.first;
-    this->threshold = ops.second;
+  CoverageRecorderPass(hecate::earth::CoverageRecorderOptions ops) {
+    this->waterline = ops.waterline;
+    this->threshold = ops.threshold;
   }
 
   void runOnOperation() override {
