@@ -273,11 +273,7 @@ void hecate::earth::BootstrapOp::getCanonicalizationPatterns(
   if (lScale.getLevel() <=
       hecate::earth::EarthDialect::bootstrapLevelUpperBound -
           hecate::earth::EarthDialect::bootstrapLevelLowerBound) {
-    if (lScale.getScale() == 0) {
-      inferredReturnTypes.push_back(lScale.switchLevel(0));
-    } else {
-      inferredReturnTypes.push_back(lScale.switchLevel(op.getTargetLevel()));
-    }
+    inferredReturnTypes.push_back(lScale.switchLevel(op.getTargetLevel()));
     return ::mlir::success();
   } else
     return ::mlir::failure();
