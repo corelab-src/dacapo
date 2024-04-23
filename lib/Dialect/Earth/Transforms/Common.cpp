@@ -110,12 +110,11 @@ void hecate::earth::refineInputValues(mlir::func::FuncOp func,
   // Set function argument types
   if (!func->hasAttr("segment_inputType")) {
     for (auto argval : func.getArguments()) {
-      argval.setType(argval.getType()
-                         .dyn_cast<RankedTensorType>()
-                         .getElementType()
-                         .replace([&](hecate::earth::HEScaleTypeInterface t) {
-                           return t.switchScale(waterline);
-                         }));
+      auto tt = argval.getType().dyn_cast<RankedTensorType>();
+      argval.setType(RankedTensorType::get(
+          tt.getShape(), tt.getElementType()
+                             .dyn_cast<hecate::earth::HEScaleTypeInterface>()
+                             .switchScale(waterline)));
       inputTypes.push_back(argval.getType());
     }
   } else {
