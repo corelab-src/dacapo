@@ -35,7 +35,7 @@ clang,clang++ >= 14.0.0
 ```bash
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
-git checkout llvmorg-16.0.0
+git checkout llvmorg-18.0.2
 cmake -GNinja -Bbuild \
   -DCMAKE_C_COMPILER=clang \
   -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release \
@@ -50,7 +50,7 @@ cd ..
 ```bash
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
-git checkout llvmorg-16.0.0
+git checkout llvmorg-18.0.2
 cmake -GNinja -Bbuild \ 
   -DCMAKE_C_COMPILER=clang \
   -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release\
@@ -149,7 +149,7 @@ You can see the optimized code in "$hecate-compiler/examples/optimized/dacapo/Re
 ## Papers 
 **DaCapo: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption**\
 Seonyoung Cheon, Yongwoo Lee, Ju Min Lee, Dongkwan Kim, Sunchul Jung, Taekyung Kim, Dongyoon Lee, and Hanjun Kim  
-*33nd USENIX Security Symposium (USENIX Security)*, August 2024. 
+*33rd USENIX Security Symposium (USENIX Security)*, August 2024. 
 [[Prepublication](https://www.usenix.org/system/files/sec24summer-prepub-336-cheon.pdf)]
 
 **ELASM: Error-Latency-Aware Scale Management for Fully Homomorphic Encryption** [[abstract](https://www.usenix.org/conference/usenixsecurity23/presentation/lee-yongwoo)]   
