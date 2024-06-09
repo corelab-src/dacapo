@@ -35,6 +35,21 @@ struct CandidateSelectionPass
     auto func = getOperation();
     auto &ca = getAnalysis<hecate::CandidateAnalysis>();
 
+    // Organize the validLiveOuts
+    for (auto a : ca.getEdges()) {
+      auto v = ca.getValueInfo(a);
+      mlir::SmallVector<int64_t, 4> validTargets;
+      for (auto bp : v->getLiveOuts()) {
+        auto vp = ca.getValueInfo(bp);
+        if (!vp->isBypassEdge(a)) {
+          validTargets.push_back(bp);
+        }
+      }
+      v->setValidLiveOuts(validTargets);
+      ca.sortValidCandidates(a);
+    }
+
+    mlir::OpBuilder builder(func);
     auto mod = mlir::ModuleOp::create(func.getLoc());
     PassManager pm(mod.getContext());
     pm.addNestedPass<func::FuncOp>(hecate::earth::createBootstrapPlacement());
@@ -43,7 +58,7 @@ struct CandidateSelectionPass
     /* pm.addNestedPass<func::FuncOp>( */
     /*     hecate::earth::createSNRRescaling({waterline, output_val})); */
 
-    for (size_t i = 1; i < ca.getMaxNumOuts(); i++) {
+    for (size_t i = 1; i <= ca.getMaxNumOuts(); i++) {
       auto dup = func.clone();
       mlir::OpBuilder builder(dup);
       dup->setAttr("btp_target",

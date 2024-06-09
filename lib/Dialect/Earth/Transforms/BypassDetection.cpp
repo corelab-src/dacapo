@@ -58,20 +58,6 @@ struct BypassDetectionPass
     for (std::thread &th : thres) {
       th.join();
     }
-    // Organize the validLiveOuts
-    for (auto a : ca.getEdges()) {
-      auto v = ca.getValueInfo(a);
-      mlir::SmallVector<int64_t, 4> validTargets;
-      for (auto bp : v->getLiveOuts()) {
-        auto vp = ca.getValueInfo(bp);
-        if (!vp->isBypassEdge(a)) {
-          validTargets.push_back(bp);
-        }
-      }
-      v->setValidLiveOuts(validTargets);
-      ca.sortValidCandidates(a);
-    }
-    markAnalysesPreserved<hecate::ScaleManagementUnit>();
     markAnalysesPreserved<hecate::CandidateAnalysis>();
   }
 
@@ -89,8 +75,6 @@ struct BypassDetectionPass
     mlir::OpBuilder builder(dup);
     dup->setAttr("btp_target", builder.getDenseI64ArrayAttr(
                                    ca.getValueInfo(from)->getLiveOuts()));
-    /* builder.getDenseI64ArrayAttr(ca.getTargets(from))); */
-    /* dup->setAttr("segment_return", builder.getDenseI64ArrayAttr({})); */
     mod.push_back(dup);
 
     if (pm.run(mod).failed()) {
