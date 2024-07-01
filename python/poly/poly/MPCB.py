@@ -114,8 +114,8 @@ def shapeClosure(nt, bb, fh, fw, s , hi, ho, wi, wo, ni, no, ci, co, ki, ko, ti,
         M = F.pad (M, (((fw-1)//2), ((fw-1)//2), ((fh-1)//2), ((fh-1)//2)), mode = 'constant', value=0)
         M = torch.stack([ M[i:i+hi,j:j+wi] for i in range (fh) for j in range(fw)])
         M = einops.repeat(M, '(fh fw) h w -> ni q fh fw (kk h s1 w s2)', fh = fh, fw = fw, q=q, kk = nt//(hi * ki * wi * ki), s1 = ki, s2 = ki, ni=ni)
-        U = U * M.cuda()
-        #U = U * M
+        # U = U * M.cuda()
+        U = U * M
         return U
 
     def DwMultWgt (U) : 
@@ -127,7 +127,8 @@ def shapeClosure(nt, bb, fh, fw, s , hi, ho, wi, wo, ni, no, ci, co, ki, ko, ti,
         M = F.pad (M, (((fw-1)//2), ((fw-1)//2), ((fh-1)//2), ((fh-1)//2)), mode = 'constant', value=0)
         M = torch.stack([ M[i:i+hi,j:j+wi] for i in range (fh) for j in range(fw)])
         M = einops.repeat(M, '(fh fw) h w -> ni fh fw (kk h s1 w s2)', fh = fh, fw = fw, kk = nt//(hi * ki * wi * ki), s1 = ki, s2 = ki, ni=ni)
-        U = U * M.cuda()
+        # U = U * M.cuda()
+        U = U * M
         return U
 
 
@@ -350,7 +351,8 @@ def shapeClosure(nt, bb, fh, fw, s , hi, ho, wi, wo, ni, no, ci, co, ki, ko, ti,
             for j in range (fint (np.log2(fh))) : 
                 B[ii] = maximum(B[ii], roll (B[ii], - (pow(2, j) * ki * ki * wi)))
         
-        S = DownSelecting().cuda()
+        # S = DownSelecting().cuda()
+        S = DownSelecting()
         for i1 in range (ki) :
             for i2 in range (ti) :
                 i3 = ((ki*i2 + i1)%(2*ko))//2
@@ -441,7 +443,8 @@ def shapeClosure(nt, bb, fh, fw, s , hi, ho, wi, wo, ni, no, ci, co, ki, ko, ti,
                 for i2 in range(fw) :
                     B =  B + (tmp[ii,i1,i2] * U[ii, i1, i2, :])
         C = np.full( (no) ,Empty(), dtype = object)
-        S = DownSelecting().cuda()
+        # S = DownSelecting().cuda()
+        S = DownSelecting()
         for i1 in range (ki) :
             for i2 in range (ti) :
                 i3 = ((ki*i2 + i1)%(s*ko))//s
@@ -513,8 +516,10 @@ def shapeClosure(nt, bb, fh, fw, s , hi, ho, wi, wo, ni, no, ci, co, ki, ko, ti,
         # tmp = torch.zeros ( (fh, fw, nt), dtype=torch.double)
         tmp = np.empty((ni, fh, fw),  dtype = object)
         # tmp = np.full( (ni, fh, fw) ,hc.Empty(), dtype = object)
-        U = ParMultWgt(U.cuda())
-        S = Selecting().cuda()
+        U = ParMultWgt(U)
+        S = Selecting()
+        # U = ParMultWgt(U.cuda())
+        # S = Selecting().cuda()
         P = ParBNConst(G)
         for ii in range(ni) : 
             for i1 in range(fh) :
@@ -561,7 +566,7 @@ def abstractBN (N):
     e = N.eps 
     G = T / torch.sqrt(V + e)
     H = I - G * M
-    return G.cuda(), H.cuda()
+    return G, H
 
 def Linear (A, U, B, nt) :
     R = np.full( (1) ,Empty(), dtype = object)
