@@ -50,7 +50,7 @@ cd ..
 ```bash
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
-git checkout llvmorg-18.0.2
+git checkout llvmorg-18.1.2
 cmake -GNinja -Bbuild \ 
   -DCMAKE_C_COMPILER=clang \
   -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release\
