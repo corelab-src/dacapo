@@ -324,12 +324,7 @@ struct SEAL_HEVM {
   void bootstrap(int16_t dst, int64_t src, uint64_t targetLevel) {
     if (debug)
       std::cout << std::log2(ciphers[src].scale()) << std::endl;
-    seal::Plaintext ptxt;
-    decryptor->decrypt(ciphers[src], ptxt);
-    std::vector<double> dats;
-    encoder->decode(ptxt, dats);
-    encode_internal(ptxt, dats, targetLevel, std::log2(ciphers[src].scale()));
-    encryptor->encrypt(ptxt, ciphers[dst]);
+    assert(0 && "This VM does not support bootstrap op");
   }
 
   void run() {
@@ -490,6 +485,9 @@ int64_t getResLen(void *vm) {
 void setDebug(void *vm, bool enable) {
   auto hevm = static_cast<SEAL_HEVM *>(vm);
   hevm->debug = enable;
+}
+void setToGPU(void *vm, bool ongpu) {
+  assert(0 && "This Library does not support GPU Backend");
 }
 void printMem(void *vm) {
   auto hevm = static_cast<SEAL_HEVM *>(vm);

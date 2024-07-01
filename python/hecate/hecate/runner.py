@@ -25,8 +25,9 @@ if not hecateBuild.is_dir() : # We expect that this is library path
     hecateBuild  = hecate_dir
 
 libpath = hecateBuild / "lib"
-# lw = ctypes.CDLL(libpath / "libSEAL_HEVM.so")
-lw = ctypes.CDLL(libpath / "libHEAAN_HEVM.so")
+lw = ctypes.CDLL(libpath / "libSEAL_HEVM.so")
+# lw = ctypes.CDLL(libpath / "libHEAAN_HEVM.so")
+# lw = ctypes.CDLL(libpath / "libTOY_HEVM.so")
 os.environ['PATH'] = str(libpath) + os.pathsep + os.environ['PATH']
 
 
@@ -77,6 +78,8 @@ def reinit_lw():
         lw = ctypes.CDLL(libpath / "libHEAAN_HEVM.so")
     elif(run_library == "OPENFHE"):
         lw = ctypes.CDLL(libpath / "libOPENFHE_HEVM.so")
+    elif(run_library == "TOY"):
+        lw = ctypes.CDLL(libpath / "libTOY_HEVM.so")
 
     # Init VM functions
     lw.initFullVM.argtypes = [ctypes.c_char_p, ctypes.c_bool]
@@ -115,14 +118,15 @@ def reinit_lw():
 
 
 
-run_library="HEAAN"
+run_library="TOY"
 run_hardware="GPU"
 def setLibnHW (argv=None):
     global run_library
     global run_hardware
     LibnHW_mapping = {
-            "HEAAN" : ["GPU", "CPU"],
-            "SEAL" : ["CPU"],
+            # "HEAAN" : ["GPU", "CPU"],
+            # "SEAL" : ["CPU"],
+            # "TOY" : ["CPU", "GPU"],
             }
     HWnLib_mapping = {}
     for support_libs, support_HWs in LibnHW_mapping.items():
@@ -157,6 +161,7 @@ def setLibnHW (argv=None):
                 run_library = HWnLib_mapping[run_hardware][0]
         else:
             print("Not supported",argv[3])
+            print("Require Bootstrapping-supported Library")
             print("Supported library :",LibnHW_mapping.keys())
             print("Supported hardware :",HWnLib_mapping.keys())
             exit()        
