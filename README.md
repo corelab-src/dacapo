@@ -158,12 +158,12 @@ Seonyoung Cheon, Yongwoo Lee, Ju Min Lee, Dongkwan Kim, Sunchul Jung, Taekyung K
 **ELASM: Error-Latency-Aware Scale Management for Fully Homomorphic Encryption** [[abstract](https://www.usenix.org/conference/usenixsecurity23/presentation/lee-yongwoo)]   
 Yongwoo Lee, Seonyoung Cheon, Dongkwan Kim, Dongyoon Lee, and Hanjun Kim  
 *32nd USENIX Security Symposium (USENIX Security)*, August 2023. 
-[[Prepublication](https://www.usenix.org/system/files/sec23fall-prepub-147-lee-yongwoo.pdf)]
+[[Publication](https://www.usenix.org/system/files/usenixsecurity23-lee-yongwoo.pdf)]
 
 **HECATE: Performance-Aware Scale Optimization for Homomorphic Encryption Compiler**\[[IEEE Xplore](http://doi.org/10.1109/CGO53902.2022.9741265)]   
 Yongwoo Lee, Seonyeong Heo, Seonyoung Cheon, Shinnung Jeong, Changsu Kim, Eunkyung Kim, Dongyoon Lee, and Hanjun Kim  
 *Proceedings of the 2022 International Symposium on Code Generation and Optimization (CGO)*, April 2022. 
-[[Prepublication](http://corelab.or.kr/Pubs/cgo22_hecate.pdf)]
+[[Publication](http://corelab.or.kr/Pubs/cgo22_hecate.pdf)]
 
 ## Citations 
 ```bibtex
