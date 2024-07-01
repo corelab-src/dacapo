@@ -35,7 +35,7 @@ clang,clang++ >= 14.0.0
 ```bash
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
-git checkout llvmorg-18.0.2
+git checkout llvmorg-18.1.2
 cmake -GNinja -Bbuild \
   -DCMAKE_C_COMPILER=clang \
   -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release \
@@ -144,7 +144,10 @@ e.g.,
 ```bash
 hbt dacapo 40 ResNet
 ```
-You can see the optimized code in "$hecate-compiler/examples/optimized/dacapo/ResNet.40.earth.mlir"
+You can see the optimized code in "$hecate-compiler/examples/optimized/dacapo/ResNet.40.earth.mlir"\
+
+If you see an error message like "error: 'earth.bootstrap' op failed to infer returned types",\
+just wait as it is in the normal compilation process.
 
 ## Papers 
 **DaCapo: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption**\
@@ -189,7 +192,7 @@ Yongwoo Lee, Seonyeong Heo, Seonyoung Cheon, Shinnung Jeong, Changsu Kim, Eunkyu
 @INPROCEEDINGS{cheon:dacapo:sec,
   title={{DaCapo}: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption},
   author={Cheon, Seonyoung and Lee, Yongwoo and Kim, Dongkwan and Lee, Ju Min and Jung, Sunchul and Kim, Taekyung and Lee, Dongyoon and Kim, Hanjun},
-  booktitle={{33nd} USENIX Security Symposium (USENIX Security 24)},
+  booktitle={{33rd} USENIX Security Symposium (USENIX Security 24)},
  year={2024},
  address = {Philadelphia, CA},
  publisher = {USENIX Association},
