@@ -64,10 +64,8 @@ struct UpscaleBubblingPass
         if (auto oop = dyn_cast<hecate::earth::UpscaleOp>(op.getOperation())) {
           // Upscale movement can be absorbed into upscale
           oop.setUpFactor(oop.getUpFactor() + minUpFactor);
-          oop.getResult()
-              .getType()
-              .dyn_cast<hecate::earth::HEScaleTypeInterface>()
-              .switchScale(oop.getScale() + minUpFactor);
+          op->getResult(0).setType(
+              op.getScaleType().switchScale(op.getScale() + minUpFactor));
 
         } else if (!op.isConsume()) {
           // Upscale is moved to the opreands
@@ -79,11 +77,8 @@ struct UpscaleBubblingPass
             op->setOperand(i, newOper);
           }
 
-          op->getResult(0)
-              .getType()
-              .dyn_cast<hecate::earth::HEScaleTypeInterface>()
-              .switchScale(oop.getScale() + minUpFactor);
-
+          op->getResult(0).setType(
+              op.getScaleType().switchScale(op.getScale() + minUpFactor));
         } else if (op.isConsume() && op.isSingle()) {
           // Upscale can be moved to ciphertext operand
           for (auto &&i = 0; i < op->getNumOperands(); i++) {
@@ -95,12 +90,9 @@ struct UpscaleBubblingPass
               op->setOperand(i, newOper);
             }
           }
-          op->getResult(0)
-              .getType()
-              .dyn_cast<hecate::earth::HEScaleTypeInterface>()
-              .switchScale(oop.getScale() + minUpFactor);
+          op->getResult(0).setType(
+              op.getScaleType().switchScale(op.getScale() + minUpFactor));
         }
-
         // Change the user modswitch downFactors
         for (auto &&oper : op->getResult(0).getUsers()) {
           if (auto oop = dyn_cast<hecate::earth::UpscaleOp>(oper)) {
