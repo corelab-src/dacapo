@@ -7,9 +7,9 @@ target_link_libraries(SEAL_HEVM
  SEAL::seal
  )
 
-add_library (TOY_HEVM
- SHARED
- TOY_HEVM.cpp)
+# add_library (TOY_HEVM
+#  SHARED
+#  TOY_HEVM.cpp)
 
 
 # add_library (HEAAN_HEVM
