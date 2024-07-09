@@ -248,13 +248,13 @@ struct SEAL_HEVM {
         encode_internal(plains[op.dst],
                         op.lhs == ((unsigned short)-1) ? identity
                                                        : buffer[op.lhs],
-                        op.rhs >> 8, op.rhs & 0xFF);
+                        op.rhs >> 10, op.rhs & 0x3FF);
       }
     }
   }
 
   void encode_internal(seal::Plaintext &dst, std::vector<double> src,
-                       int8_t level, int8_t scale) {
+                       int8_t level, int64_t scale) {
     std::vector<double> datas(1LL << (N - 1), 0.0);
     for (int i = 0; i < datas.size(); i++) {
       datas[i] = src[i % src.size()];
@@ -344,7 +344,7 @@ struct SEAL_HEVM {
       }
       switch (op.opcode) {
       case 0: { // Encode
-        encode(op.dst, op.lhs, op.rhs >> 8, op.rhs & 0xFF);
+        encode(op.dst, op.lhs, op.rhs >> 10, op.rhs & 0x3FF);
         break;
       }
       case 1: { // RotateC
@@ -491,8 +491,8 @@ void setToGPU(void *vm, bool ongpu) {
 }
 void printMem(void *vm) {
   auto hevm = static_cast<SEAL_HEVM *>(vm);
-  std::cout << "MemUsage: 0.0GB (0.0%)\n";
-  std::cout << "polyDegree: " << hevm->N << '\n';
-  std::cout << "encodeOnline: " << 0 << "\n\n";
+  /* std::cout << "MemUsage: 0.0GB (0.0%)\n"; */
+  /* std::cout << "polyDegree: " << hevm->N << '\n'; */
+  /* std::cout << "encodeOnline: " << 0 << "\n\n"; */
 }
 };
