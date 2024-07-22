@@ -266,7 +266,7 @@ class HEVM :
         print("---------------Result-----------------")
         print("latency:", latency)
         print("rms:", rms)
-        print("memory_usage:", mem_usage)
+        # print("memory_usage:", mem_usage)
         print("======================================")
         print()
 
