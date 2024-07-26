@@ -124,30 +124,73 @@ hc-trace ResNet
 ### Compile the traced Earth IR 
 
 ```bash
-hopts <pars|dacapo> <waterline:integer> <example-name>
+hopts <pars|dacapo> <waterline:integer> <example-name> <library-name> <hardware>
 ```
 e.g., 
 ```bash
-hopts dacapo 40 ResNet
+hopts dacapo 40 ResNet HEAAN GPU
 ```
 This command will print like this:
 ```
-Estimated Latency: 13.348852 (sec)
+Estimated Latency: 13.980823 (sec)
 Number of Bootstrapping: 19
 ```
 
 ### Compile the traced Earth IR and Check the optimized code 
 ```bash
-hbt <pars|dacapo> <waterline:integer> <example-name>
+hbt <pars|dacapo> <waterline:integer> <example-name> <library-name> <hardware>
 ```
 e.g., 
 ```bash
-hbt dacapo 40 ResNet
+hbt dacapo 40 ResNet HEAAN GPU
+```
+This command will print like this:
+```
+Estimated Latency: 13.980823 (sec)
+Number of Bootstrapping: 19
+===---------------------------====
+  ... Execution Time Report ....
 ```
 You can see the optimized code in "$hecate-compiler/examples/optimized/dacapo/ResNet.40.earth.mlir"\
 
 If you see an error message like "error: 'earth.bootstrap' op failed to infer returned types",\
 just wait as it is in the normal compilation process.
+
+
+### Test code
+We are currently conducting experiments using a modified version of the HEAAN library.\
+However, due to licensing restrictions, we cannot offer interfaces for testing our compiled code directly with the HEAAN library.\
+Therefore, we kindly ask you to attach a library that supports bootstrapping if you want to test compiled code. 
+
+In addition, we have included the SEAL library, which does not natively support bootstrapping.
+We've provided a wrapper (SEAL\_HEVM.cpp) that modifies the bootstrapping algorithm into the decryption+encryption form.
+Please note that while this method allows you to test the results, it is not recommended from a privacy perspective.
+If you want to test with the SEAL library, refer to the example below:
+
+First, need to generate trace code that matches SEAL parameters:
+In /examples/benchmarks/ResNet.py, "nt" : 2**16 ----> "nt" : 2**14
+
+```
+hc-trace ResNet
+hbt dacapo 40 ResNet SEAL CPU
+hc-test dacapo 40 ResNet SEAL CPU
+```
+This command will print like this:
+```
+======================================
+---------------Option-----------------
+compiler: dacapo
+benchname: ResNet
+waterline: 40
+library: SEAL
+device: CPU
+---------------Result-----------------
+latency: 53.7260615
+rms: 0.00095152200605
+======================================
+```
+Currently, this compiler only supports code generation and testing for the SEAL version only with ResNet.
+For other benchmarks, compilation with the HEAAN viersion is possible, but program testing is not due to library license. (Ongoing Research)
 
 ## Papers 
 **DaCapo: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption**\

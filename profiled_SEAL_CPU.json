@@ -2,9 +2,9 @@
  "runtime" : "SEAL-HEVM",
  "rescalingFactor" : 60,
  "polynomialDegree" : 32768,
- "levelLowerBound" : 1,
+ "levelLowerBound" : 2,
  "levelUpperBound" : 13,
- "bootstrapLevelLowerBound" : 1,
+ "bootstrapLevelLowerBound" :2,
  "bootstrapLevelUpperBound" : 13,
  "latencyTable" : {
   "earth.rotate_single" :

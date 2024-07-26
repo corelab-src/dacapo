@@ -1,4 +1,6 @@
 export HECATE=$( cd -- "$( dirname -- "$BASH_SOURCE[0]" )" &> /dev/null && pwd )
+export CC="clang"
+export CXX="clang++"
 
 alias hopt=$HECATE/build/bin/hecate-opt
 alias hopt-debug=$HECATE/build-debug/bin/hecate-opt
@@ -46,8 +48,11 @@ hopt-timing-only(){
 hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2 $HECATE/examples/traced/$3.mlir --mlir-timing -o $HECATE/examples/optimized/$1/$3.$2.mlir
 }
 
+# hopt-silent(){
+# hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
+# }
 hopt-silent(){
-hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
+hopt --$1 --ckks-config="$HECATE/profiled_$4_$5.json" --waterline=$2 $HECATE/examples/traced/$3.mlir -o $HECATE/examples/optimized/$1/$3.$2.mlir
 }
 
 hc-opt-test() {
@@ -63,7 +68,7 @@ hopt --$1 --ckks-config="$HECATE/profiled_$4_$5.json" --waterline=$2 --enable-de
 }
 
 hopt-lib-hww() {
-hopt --$1 --ckks-config="$HECATE/config.json" --waterline=$2 --enable-debug-printer $HECATE/examples/traced/$3.mlir --mlir-print-debuginfo --mlir-pretty-debuginfo --mlir-print-local-scope --mlir-disable-threading --mlir-timing --mlir-print-ir-after-failure -o $HECATE/examples/optimized/$1/$3.$2.mlir
+hopt --$1 --ckks-config="$HECATE/profiled_$4_$5.json" --waterline=$2 --enable-debug-printer $HECATE/examples/traced/$3.mlir --mlir-print-debuginfo --mlir-pretty-debuginfo --mlir-print-local-scope --mlir-disable-threading --mlir-timing --mlir-print-ir-after-failure -o $HECATE/examples/optimized/$1/$3.$2.mlir
 }
 
 hc-back-opt-test(){

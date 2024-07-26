@@ -277,17 +277,17 @@ class Empty :
     def __init__ (self) : 
         pass
     def __add__(self, other) :
-        return other
+        return resolveType(other)
     def __radd__(self, other) :
-        return other
+        return resolveType(other)
     def __iadd__(self, other) :
-        return other
+        return resolveType(other)
     def __sub__(self, other) :
-        return other
+        return resolveType(other)
     def __rsub__(self, other) :
-        return other
+        return resolveType(other)
     def __isub__(self, other) :
-        return other
+        return resolveType(other)
 
 
 """Function Decorator"""

@@ -118,14 +118,14 @@ def reinit_lw():
 
 
 
-run_library="TOY"
-run_hardware="GPU"
+run_library="SEAL"
+run_hardware="CPU"
 def setLibnHW (argv=None):
     global run_library
     global run_hardware
     LibnHW_mapping = {
             # "HEAAN" : ["GPU", "CPU"],
-            # "SEAL" : ["CPU"],
+            "SEAL" : ["CPU"],
             # "TOY" : ["CPU", "GPU"],
             }
     HWnLib_mapping = {}
@@ -165,10 +165,10 @@ def setLibnHW (argv=None):
             print("Supported library :",LibnHW_mapping.keys())
             print("Supported hardware :",HWnLib_mapping.keys())
             exit()        
-    # else:
-        #        # For default
-#        run_library = list(LibnHW_mapping.keys())[0]
-#        run_hardware = LibnHW_mapping[run_library][0]
+    else:
+       # For default
+       run_library = list(LibnHW_mapping.keys())[0]
+       run_hardware = LibnHW_mapping[run_library][0]
 
 
 class HEVM : 

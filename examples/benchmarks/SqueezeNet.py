@@ -56,8 +56,8 @@ def SqueezeNet (ctxt) :
     
     initial_shapes = {
         # Constant
-        #"nt" : 2**16,
         "nt" : 2**16,
+        # "nt" : 2**14,
         "bb" : 32,
         # Input Characteristics (Cascaded)
         "ko" : 1,

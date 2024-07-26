@@ -254,7 +254,7 @@ struct SEAL_HEVM {
   }
 
   void encode_internal(seal::Plaintext &dst, std::vector<double> src,
-                       int8_t level, int64_t scale) {
+                       int64_t level, int64_t scale) {
     std::vector<double> datas(1LL << (N - 1), 0.0);
     for (int i = 0; i < datas.size(); i++) {
       datas[i] = src[i % src.size()];
@@ -325,6 +325,12 @@ struct SEAL_HEVM {
     if (debug)
       std::cout << std::log2(ciphers[src].scale()) << std::endl;
     assert(0 && "This VM does not support bootstrap op");
+    seal::Plaintext ptxt;
+    std::vector<double> dats;
+    decryptor->decrypt(ciphers[src], ptxt);
+    encoder->decode(ptxt, dats);
+    encode_internal(ptxt, dats, targetLevel, std::log2(ciphers[src].scale()));
+    encryptor->encrypt(ptxt, ciphers[dst]);
   }
 
   void run() {
