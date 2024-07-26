@@ -542,8 +542,8 @@ def shapeClosure(nt, bb, fh, fw, s , hi, ho, wi, wo, ni, no, ci, co, ki, ko, ti,
             C = SumSlots(C, ti, ki*ki*hi*wi)
             for i4 in range(min (pi, co-pi*i3)) :
                 i = pi*i3 + i4
-                i6 = i %  (ko * ko *nt // (hi * wi)) # tiled to 
-                i8 = i // (ko * ko * nt // (hi * wi)) # out no
+                i6 = i %  (ko * ko *nt // (hi * wi * ki *ki)) # tiled to 
+                i8 = i // (ko * ko * nt // (hi * wi * ki * ki)) # out no
                 D[i8] = D[i8] + roll (C, ((i6//(ko *ko))*ko *ko *ho * wo - (nt //pi) * (i6 % pi) +  ( (i6 % (ko *ko)) // ko) * ko * wo + (i6 %ko))- i8*nt) * (S[i8, i]* P[i8])
 
         for ii in range(no) :
