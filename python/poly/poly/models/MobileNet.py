@@ -13,8 +13,8 @@ __all__ = ['MobileNet', 'mobilenet']
 
 from pathlib import Path
 
-use_cuda = torch.cuda.is_available()
-# use_cuda = False
+# use_cuda = torch.cuda.is_available()
+use_cuda = False
 FireBlockConfig = {
     'fire2':{'s1x1':16, 'e1x1':64, 'e3x3':64},
     'fire3':{'s1x1':16, 'e1x1':64, 'e3x3':64},

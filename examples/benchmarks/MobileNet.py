@@ -44,6 +44,7 @@ def getModel():
 def MobileNet (ctxt) :
     model = getModel()
     model = model.type(torch.double)
+    model = model.cpu()
     # input_var = input_var.type(torch.double)
     input_var = np.empty((1), dtype=object)
     input_var[0] = ctxt
