@@ -307,7 +307,7 @@ def shapeClosure(nt, bb, fh, fw, s , hi, ho, wi, wo, ni, no, ci, co, ki, ko, ti,
     
     def Concat (A, B):
         if ((ci * wi * hi) %nt) == 0 :
-            return np.concatenate (A, B)
+            return np.concatenate ((A, B))
         
         C = np.full((ni), Empty(), dtype=object)
         D = np.full((no), Empty(), dtype=object)
