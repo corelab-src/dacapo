@@ -307,7 +307,8 @@ void hecate::earth::AddOp::getCanonicalizationPatterns(
 
 void hecate::earth::MulOp::getCanonicalizationPatterns(
     RewritePatternSet &patterns, MLIRContext *context) {
-  patterns.add<MulZeroPattern, MulOnePattern, NegMulPattern>(context);
+  /* patterns.add<MulZeroPattern, MulOnePattern, NegMulPattern>(context); */
+  patterns.add<MulOnePattern, NegMulPattern>(context);
 }
 
 ::mlir::LogicalResult hecate::earth::MulOp::inferReturnTypes(
