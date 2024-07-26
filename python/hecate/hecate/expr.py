@@ -116,9 +116,15 @@ def unaryFactory(name, opcode):
     def unaryMethod(self):
         (frame, filename, line_number, function_name, lines,
                 index) = inspect.stack()[1]
-        return Expr(
-                lt.createUnary(ctxt, opcode, self.obj, filename.encode('utf-8'),
+        if isinstance(self, Iterable):
+            for tt in self : 
+                tt = Expr(
+                    lt.createUnary(ctxt, opcode, tt.obj, filename.encode('utf-8'),
                     line_number))
+            return self 
+        else :
+            return Expr(lt.createUnary(ctxt, opcode, self.obj, filename.encode('utf-8'),
+                line_number)) 
 
     globals()[name] = unaryMethod
 [unaryFactory(name, opcode) for name, opcode in toUnary.items()]

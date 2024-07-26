@@ -67,7 +67,7 @@ def SqueezeNet (ctxt) :
     close = shapeClosure(**conv_1_shapes)
     out = HE_ConvBN(close, input_var,model.module.conv_1.Conv2d, model.module.conv_1.bn)
     out = act (out)
-    out[0] = hc.bootstrap(out[0]) # 1
+    out = hc.bootstrap(out)
     block_in = conv_1_shapes
  
     print("avgpool_1")
@@ -79,10 +79,10 @@ def SqueezeNet (ctxt) :
     print("fire_2")
     fire_2_squeeze_shapes = CascadeConv(block_in, model.module.fire_2.squeeze.Conv2d)
     close = shapeClosure(**fire_2_squeeze_shapes)
-    out[0] = hc.bootstrap(out[0]) # 2
+    out = hc.bootstrap(out)
     out = HE_ConvBN(close, out, model.module.fire_2.squeeze.Conv2d, model.module.fire_2.squeeze.bn)
     out = act (out)
-    out[0] = hc.bootstrap(out[0]) # 3
+    out = hc.bootstrap(out)
     block_in = fire_2_squeeze_shapes
 
     fire_2_expand1x1_shapes = CascadeConv(block_in, model.module.fire_2.expand1x1)
@@ -104,9 +104,9 @@ def SqueezeNet (ctxt) :
     fire_3_squeeze_shapes = CascadeConv(block_in, model.module.fire_3.squeeze.Conv2d)
     close = shapeClosure(**fire_3_squeeze_shapes)
     out = HE_ConvBN(close, out, model.module.fire_3.squeeze.Conv2d, model.module.fire_3.squeeze.bn)
-    out[0] = hc.bootstrap(out[0]) # 4
+    out = hc.bootstrap(out)
     out = act (out)
-    out[0] = hc.bootstrap(out[0]) # 5
+    out = hc.bootstrap(out)
     block_in = fire_3_squeeze_shapes
 
     fire_3_expand1x1_shapes = CascadeConv(block_in, model.module.fire_3.expand1x1)
@@ -126,9 +126,9 @@ def SqueezeNet (ctxt) :
     fire_4_squeeze_shapes = CascadeConv(block_in, model.module.fire_4.squeeze.Conv2d)
     close = shapeClosure(**fire_4_squeeze_shapes)
     out = HE_ConvBN(close, out, model.module.fire_4.squeeze.Conv2d, model.module.fire_4.squeeze.bn)
-    out[0] = hc.bootstrap(out[0]) # 6 - 3177
+    out = hc.bootstrap(out)
     out = act(out)
-    out[0] = hc.bootstrap(out[0]) # 7
+    out = hc.bootstrap(out)
     print ("additional")
     block_in = fire_4_squeeze_shapes
     
@@ -151,17 +151,15 @@ def SqueezeNet (ctxt) :
     avgpool_4_shapes = CascadeMax (block_in, model.module.avgpool_4)
     close = shapeClosure(**avgpool_4_shapes)
     out = pooling(close, out)
-    out[0] = hc.bootstrap(out[0]) # 8 - 5526
-    #ori = ori.view(ori.size(0), -1)
+    out = hc.bootstrap(out)
     block_in = avgpool_4_shapes
 
     print("fire_5")
     fire_5_squeeze_shapes = CascadeConv(block_in, model.module.fire_5.squeeze.Conv2d)
     close = shapeClosure(**fire_5_squeeze_shapes)
     out = HE_ConvBN(close, out, model.module.fire_5.squeeze.Conv2d, model.module.fire_5.squeeze.bn)
-    #out[0] = hc.bootstrap(out[0]) # ??
     out = act(out)
-    out[0] = hc.bootstrap(out[0]) # 9 - 5965
+    out = hc.bootstrap(out)
     block_in = fire_5_squeeze_shapes
 
     fire_5_expand1x1_shapes = CascadeConv(block_in, model.module.fire_5.expand1x1)
@@ -180,9 +178,9 @@ def SqueezeNet (ctxt) :
     fire_6_squeeze_shapes = CascadeConv(block_in, model.module.fire_6.squeeze.Conv2d)
     close = shapeClosure(**fire_6_squeeze_shapes)
     out = HE_ConvBN(close, out, model.module.fire_6.squeeze.Conv2d, model.module.fire_6.squeeze.bn)
-    out[0] = hc.bootstrap(out[0]) # 10 - 7521
+    out = hc.bootstrap(out)
     out = act(out)
-    out[0] = hc.bootstrap(out[0]) # 11
+    out = hc.bootstrap(out)
     block_in = fire_6_squeeze_shapes
 
     fire_6_expand1x1_shapes = CascadeConv(block_in, model.module.fire_6.expand1x1)
@@ -204,20 +202,18 @@ def SqueezeNet (ctxt) :
     fire_7_squeeze_shapes = CascadeConv(block_in, model.module.fire_7.squeeze.Conv2d)
     close = shapeClosure(**fire_7_squeeze_shapes)
     out = HE_ConvBN(close, out, model.module.fire_7.squeeze.Conv2d, model.module.fire_7.squeeze.bn)
-    out[0] = hc.bootstrap(out[0]) # 12 - 10262
+    out = hc.bootstrap(out)
     out = act(out)
-    out[0] = hc.bootstrap(out[0]) # 13 - 12233
+    out = hc.bootstrap(out)
     block_in = fire_7_squeeze_shapes
 
     fire_7_expand1x1_shapes = CascadeConv(block_in, model.module.fire_7.expand1x1)
     close = shapeClosure(**fire_7_expand1x1_shapes)
     out1 = HE_Conv(close, out, model.module.fire_7.expand1x1)
-    #out1[0] = hc.bootstrap(out1[0])
 
     fire_7_expand3x3_shapes = CascadeConv(block_in, model.module.fire_7.expand3x3)
     close = shapeClosure(**fire_7_expand3x3_shapes)
     out2 = HE_Conv(close, out, model.module.fire_7.expand3x3)
-    #out2[0] = hc.bootstrap(out2[0])
     ##############concat################
     block_in = CascadeConcat(fire_7_expand1x1_shapes, fire_7_expand3x3_shapes)
     close = shapeClosure(**block_in)
@@ -228,9 +224,9 @@ def SqueezeNet (ctxt) :
     fire_8_squeeze_shapes = CascadeConv(block_in, model.module.fire_8.squeeze.Conv2d)
     close = shapeClosure(**fire_8_squeeze_shapes)
     out = HE_ConvBN(close, out, model.module.fire_8.squeeze.Conv2d, model.module.fire_8.squeeze.bn)
-    out[0] = hc.bootstrap(out[0]) # 14 - 13171
+    out = hc.bootstrap(out)
     out = act(out)
-    out[0] = hc.bootstrap(out[0]) # 15
+    out = hc.bootstrap(out)
     block_in = fire_8_squeeze_shapes
 
     fire_8_expand1x1_shapes = CascadeConv(block_in, model.module.fire_8.expand1x1)
@@ -249,19 +245,16 @@ def SqueezeNet (ctxt) :
     print("avgpool_8")
     avgpool_8_shapes = CascadeMax (block_in, model.module.avgpool_8)
     close = shapeClosure(**avgpool_8_shapes)
-    #out[0] = hc.bootstrap(out[0])
     out = pooling(close, out)
-    out[0] = hc.bootstrap(out[0]) # 16 - 16355
-    #ori = ori.view(ori.size(0), -1)
+    out = hc.bootstrap(out)
     block_in = avgpool_8_shapes
 
     print("fire_9")
     fire_9_squeeze_shapes = CascadeConv(block_in, model.module.fire_9.squeeze.Conv2d)
     close = shapeClosure(**fire_9_squeeze_shapes)
     out = HE_ConvBN(close, out, model.module.fire_9.squeeze.Conv2d, model.module.fire_9.squeeze.bn)
-    #out[0] = hc.bootstrap(out[0]) # 16794 <- Dacapo bootstrap here
     out = act(out)
-    out[0] = hc.bootstrap(out[0]) # 17 - 16940
+    out = hc.bootstrap(out)
     block_in = fire_9_squeeze_shapes
 
     fire_9_expand1x1_shapes = CascadeConv(block_in, model.module.fire_9.expand1x1)
@@ -281,9 +274,8 @@ def SqueezeNet (ctxt) :
     print("Conv_10")
     conv_10_shapes = CascadeConv(block_in, model.module.conv_10.Conv2d)
     close = shapeClosure(**conv_10_shapes)
-    #out[0] = hc.bootstrap(out[0]) # 18982
     out = HE_ConvBN(close, out, model.module.conv_10.Conv2d, model.module.conv_10.bn)
-    out[0] = hc.bootstrap(out[0]) # 18 - 19077
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_10_shapes
     

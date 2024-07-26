@@ -66,7 +66,7 @@ def MobileNet (ctxt) :
     conv1_shapes = CascadeConv(initial_shapes, model.module.pre_layer.Conv2d)
     close = shapeClosure(**conv1_shapes)
     out = HE_ConvBN(close, input_var, model.module.pre_layer.Conv2d, model.module.pre_layer.bn)
-    out[0] = hc.bootstrap(out[0]) # 1
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv1_shapes
     for i in range(0, len(model.module.Depthwise)):
@@ -74,13 +74,13 @@ def MobileNet (ctxt) :
         inconv_0_shapes = CascadeConv(block_in, model.module.Depthwise[i].dwConv2d)
         close = shapeClosure(**inconv_0_shapes)
         out = HE_DwConv(close, out, model.module.Depthwise[i].dwConv2d, model.module.Depthwise[i].bn)
-        out[0] = hc.bootstrap(out[0])
+        out = hc.bootstrap(out)
         out = act(out)
         
         inconv_0_pointwise_shapes = CascadeConv(inconv_0_shapes, model.module.Depthwise[i].pointwiseConv2d.Conv2d)
         close = shapeClosure(**inconv_0_pointwise_shapes)
         out = HE_ConvBN(close, out, model.module.Depthwise[i].pointwiseConv2d.Conv2d, model.module.Depthwise[i].pointwiseConv2d.bn)
-        out[0] = hc.bootstrap(out[0])
+        out = hc.bootstrap(out)
         out = act(out)
         block_in = inconv_0_pointwise_shapes
 

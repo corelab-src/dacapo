@@ -67,25 +67,22 @@ def AlexNet (ctxt) :
     conv_1_shapes = CascadeConv(initial_shapes, model.module.Conv2d_1)
     close = shapeClosure(**conv_1_shapes)
     out = HE_ConvBN(close, input_var,model.module.Conv2d_1, model.module.bn_1)
-    out[0] = hc.bootstrap(out[0]) # 1 - 571
-    out[1] = hc.bootstrap(out[1]) # 2 - 581
+    out = hc.bootstrap(out)
     out = act(out)
-    out[0] = hc.bootstrap(out[0]) # 3-1
-    out[1] = hc.bootstrap(out[1]) # 3-2
+    out = hc.bootstrap(out)
     block_in = conv_1_shapes
     
     print("avgpool_1")
     avgpool_1_shapes = CascadeMax (block_in, model.module.avgpool_1)
     close = shapeClosure(**avgpool_1_shapes)
     out = pooling(close, out)
-    #out[0] = hc.bootstrap(out[0]) # 3 - 1341
     block_in = avgpool_1_shapes
     
     print("Conv_2_BN")        
     conv_2_shapes = CascadeConv(block_in, model.module.Conv2d_2)
     close = shapeClosure(**conv_2_shapes)
     out = HE_ConvBN(close, out,model.module.Conv2d_2, model.module.bn_2)
-    out[0] = hc.bootstrap(out[0]) # 4 - 13783
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_2_shapes
  
@@ -93,14 +90,14 @@ def AlexNet (ctxt) :
     avgpool_2_shapes = CascadeMax (block_in, model.module.avgpool_2)
     close = shapeClosure(**avgpool_2_shapes)
     out = pooling(close, out)
-    out[0] = hc.bootstrap(out[0]) # 5 - 14479
+    out = hc.bootstrap(out)
     block_in = avgpool_2_shapes
 
     print("Conv_3")        
     conv_3_shapes = CascadeConv(block_in, model.module.Conv2d_3)
     close = shapeClosure(**conv_3_shapes)
     out = HE_ConvBN(close, out ,model.module.Conv2d_3, model.module.bn_3)
-    out[0] = hc.bootstrap(out[0]) # 6 - 20155
+    out = hc.bootstrap(out)
     out = act (out)
     block_in = conv_3_shapes
  
@@ -108,8 +105,7 @@ def AlexNet (ctxt) :
     conv_4_shapes = CascadeConv(block_in, model.module.Conv2d_4)
     close = shapeClosure(**conv_4_shapes)
     out = HE_ConvBN(close, out ,model.module.Conv2d_4, model.module.bn_4)
-    out[0] = hc.bootstrap(out[0]) # 7 - 30490
-    # out[1] = hc.bootstrap(out[1])
+    out = hc.bootstrap(out)
     out = act (out)
     block_in = conv_4_shapes
  
@@ -118,24 +114,23 @@ def AlexNet (ctxt) :
     close = shapeClosure(**conv_5_shapes)
     out = HE_ConvBN(close, out ,model.module.Conv2d_5, model.module.bn_5)
     
-    out[0] = hc.bootstrap(out[0]) # 8 - 37435
-    # out[1] = hc.bootstrap(out[1])
+    out = hc.bootstrap(out)
     out = act (out)
     block_in = conv_5_shapes
     print("avgpool_3")
     avgpool_3_shapes = CascadeMax (block_in, model.module.avgpool_3)
     close = shapeClosure(**avgpool_3_shapes)
     out = pooling(close, out)
-    out[0] = hc.bootstrap(out[0]) # 9 - 37879
+    out = hc.bootstrap(out)
     block_in = avgpool_3_shapes
     
     print("fc_1")
     out = HE_ReshapeLinear(close["OP"], out, model.module.fc_1, scale = 32.0, reshape = block_in)
-    out[0] = hc.bootstrap(out[0]) # 10 - 46078
+    out = hc.bootstrap(out)
     out = act(out)
     print("fc_2")
     out = HE_Linear(close["OP"], out, model.module.fc_2, scale = 32.0)
-    out[0] = hc.bootstrap(out[0]) # 11 - 50328
+    out = hc.bootstrap(out)
     out = act(out)
     print("fc_3")
     out = HE_Linear(close["OP"], out, model.module.fc_3, scale = 32.0)

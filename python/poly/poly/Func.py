@@ -74,7 +74,8 @@ def HE_Concat (close, mpp_1, mpp_2) :
 def HE_ReLU (x) : 
     def sign (x) :
         out = Poly.poly2(Poly.poly1(x))
-        out[0] = hc.bootstrap(out[0])
+        # out[0] = hc.bootstrap(out[0])
+        out = hc.bootstrap(out)
         out = Poly.poly3(out)
         return out 
     return (0.5 + sign (x)) *  x

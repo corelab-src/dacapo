@@ -59,9 +59,8 @@ def ResNet (ctxt) :
     }
     conv1_shapes = CascadeConv(initial_shapes, model.module.conv1)
     close = shapeClosure(**conv1_shapes)
-    # out = HE_Conv(MPCB, MPP(input_var),model.module.conv1, model.module.bn1)
     out = HE_ConvBN(close, input_var,model.module.conv1, model.module.bn1)
-    out[0] = hc.bootstrap(out[0])
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv1_shapes
     print ("layer1")
@@ -71,13 +70,13 @@ def ResNet (ctxt) :
         inconv1_shapes = CascadeConv (block_in, model.module.layer1[i].conv1)
         close = shapeClosure(**inconv1_shapes)
         out = HE_ConvBN(close, out, model.module.layer1[i].conv1, model.module.layer1[i].bn1)
-        out[0] = hc.bootstrap(out[0])
+        out = hc.bootstrap(out)
         out = act (out)
         inconv2_shapes = CascadeConv (inconv1_shapes, model.module.layer1[i].conv2)
         close = shapeClosure(**inconv2_shapes)
         out = HE_ConvBN(close, out,model.module.layer1[i].conv2, model.module.layer1[i].bn2)
         out = out +dsout
-        out[0] = hc.bootstrap(out[0])
+        out = hc.bootstrap(out)
         out = act (out)
         block_in = inconv2_shapes
 
@@ -92,13 +91,13 @@ def ResNet (ctxt) :
         inconv1_shapes = CascadeConv (block_in, model.module.layer2[i].conv1)
         close = shapeClosure(**inconv1_shapes)
         out = HE_ConvBN(close, out, model.module.layer2[i].conv1, model.module.layer2[i].bn1)
-        out[0] = hc.bootstrap(out[0])
+        out = hc.bootstrap(out)
         out = act (out)
         inconv2_shapes = CascadeConv (inconv1_shapes, model.module.layer2[i].conv2)
         close = shapeClosure(**inconv2_shapes)
         out = HE_ConvBN(close,  out, model.module.layer2[i].conv2, model.module.layer2[i].bn2)
         out = out +dsout
-        out[0] = hc.bootstrap(out[0])
+        out = hc.bootstrap(out)
         out = act (out)
         block_in = inconv2_shapes
         
@@ -113,13 +112,13 @@ def ResNet (ctxt) :
         inconv1_shapes = CascadeConv (block_in, model.module.layer3[i].conv1)
         close = shapeClosure(**inconv1_shapes)
         out = HE_ConvBN(close, out, model.module.layer3[i].conv1, model.module.layer3[i].bn1)
-        out[0] = hc.bootstrap(out[0])
+        out = hc.bootstrap(out)
         out = act (out)
         inconv2_shapes = CascadeConv (inconv1_shapes, model.module.layer3[i].conv2)
         close = shapeClosure(**inconv2_shapes)
         out = HE_ConvBN(close, out, model.module.layer3[i].conv2, model.module.layer3[i].bn2)
         out= out + dsout
-        out[0] = hc.bootstrap(out[0])
+        out = hc.bootstrap(out)
         out = act (out)
         block_in = inconv2_shapes
         

@@ -68,27 +68,26 @@ def VGG16 (ctxt) :
     conv_1_1_shapes = CascadeConv(initial_shapes, model.module.conv_1_1.Conv2d)
     close = shapeClosure(**conv_1_1_shapes)
     out = HE_ConvBN(close, input_var, model.module.conv_1_1.Conv2d, model.module.conv_1_1.bn)
-    out[0] = hc.bootstrap(out[0]) # 1 - 390
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_1_1_shapes
     print("Conv_1_2")
     conv_1_2_shapes = CascadeConv(block_in, model.module.conv_1_2.Conv2d)
     close = shapeClosure(**conv_1_2_shapes)
     out = HE_ConvBN(close, out, model.module.conv_1_2.Conv2d, model.module.conv_1_2.bn)
-    out[0] = hc.bootstrap(out[0]) # 2 - 3351
+    out = hc.bootstrap(out)
     out = act(out)
-    #out[0] = hc.bootstrap(out[0]) # 3 - 3
     block_in = conv_1_2_shapes
     print("avgpool_1")
     avgpool_1_shapes = CascadeMax (block_in, model.module.avgpool_1)
     close = shapeClosure(**avgpool_1_shapes)
     out = pooling(close, out)
-    out[0] = hc.bootstrap(out[0]) # 3 - 3761
+    out = hc.bootstrap(out)
     block_in = avgpool_1_shapes
     conv_2_1_shapes = CascadeConv(block_in, model.module.conv_2_1.Conv2d)
     close = shapeClosure(**conv_2_1_shapes)
     out = HE_ConvBN(close, out, model.module.conv_2_1.Conv2d, model.module.conv_2_1.bn)
-    out[0] = hc.bootstrap(out[0]) # 4 - 5533
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_2_1_shapes
     
@@ -96,23 +95,22 @@ def VGG16 (ctxt) :
     conv_2_2_shapes = CascadeConv(block_in, model.module.conv_2_2.Conv2d)
     close = shapeClosure(**conv_2_2_shapes)
     out = HE_ConvBN(close, out, model.module.conv_2_2.Conv2d, model.module.conv_2_2.bn)
-    out[0] = hc.bootstrap(out[0]) # 5 - 8828
+    out = hc.bootstrap(out)
     out = act(out)
-    #out[0] = hc.bootstrap(out[0]) # 6 - 
     block_in = conv_2_2_shapes
     
     print("avgpool_2")
     avgpool_2_shapes = CascadeMax (block_in, model.module.avgpool_2)
     close = shapeClosure(**avgpool_2_shapes)
     out = pooling(close, out)
-    out[0] = hc.bootstrap(out[0]) # 6 - 9240 
+    out = hc.bootstrap(out)
     block_in = avgpool_2_shapes
     
     print("Conv_3_1")        
     conv_3_1_shapes = CascadeConv(block_in, model.module.conv_3_1.Conv2d)
     close = shapeClosure(**conv_3_1_shapes)
     out = HE_ConvBN(close, out, model.module.conv_3_1.Conv2d, model.module.conv_3_1.bn)
-    out[0] = hc.bootstrap(out[0]) # 7 - 11590
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_3_1_shapes
     
@@ -120,7 +118,7 @@ def VGG16 (ctxt) :
     conv_3_2_shapes = CascadeConv(block_in, model.module.conv_3_2.Conv2d)
     close = shapeClosure(**conv_3_2_shapes)
     out = HE_ConvBN(close, out, model.module.conv_3_2.Conv2d, model.module.conv_3_2.bn)
-    out[0] = hc.bootstrap(out[0]) # 8 - 15527
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_3_2_shapes
     
@@ -128,22 +126,21 @@ def VGG16 (ctxt) :
     conv_3_3_shapes = CascadeConv(block_in, model.module.conv_3_3.Conv2d)
     close = shapeClosure(**conv_3_3_shapes)
     out = HE_ConvBN(close, out, model.module.conv_3_3.Conv2d, model.module.conv_3_3.bn)
-    out[0] = hc.bootstrap(out[0]) # 9 - 19464
+    out = hc.bootstrap(out)
     out = act(out)
-    #out[0] = hc.bootstrap(out[0]) # 10
     block_in = conv_3_3_shapes
     
     print("avgpool_3")
     avgpool_3_shapes = CascadeMax (block_in, model.module.avgpool_3)
     close = shapeClosure(**avgpool_3_shapes)
     out = pooling(close, out)
-    out[0] = hc.bootstrap(out[0]) # 10 - 19878
+    out = hc.bootstrap(out)
     block_in = avgpool_3_shapes
     print("Conv_4_1")        
     conv_4_1_shapes = CascadeConv(block_in, model.module.conv_4_1.Conv2d)
     close = shapeClosure(**conv_4_1_shapes)
     out = HE_ConvBN(close, out, model.module.conv_4_1.Conv2d, model.module.conv_4_1.bn)
-    out[0] = hc.bootstrap(out[0]) # 11 - 23318
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_4_1_shapes
     
@@ -151,7 +148,7 @@ def VGG16 (ctxt) :
     conv_4_2_shapes = CascadeConv(block_in, model.module.conv_4_2.Conv2d)
     close = shapeClosure(**conv_4_2_shapes)
     out = HE_ConvBN(close, out, model.module.conv_4_2.Conv2d, model.module.conv_4_2.bn)
-    out[0] = hc.bootstrap(out[0]) # 12 - 28409
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_4_2_shapes
     
@@ -159,23 +156,22 @@ def VGG16 (ctxt) :
     conv_4_3_shapes = CascadeConv(block_in, model.module.conv_4_3.Conv2d)
     close = shapeClosure(**conv_4_3_shapes)
     out = HE_ConvBN(close, out, model.module.conv_4_3.Conv2d, model.module.conv_4_3.bn)
-    out[0] = hc.bootstrap(out[0]) # 13 - 33500
+    out = hc.bootstrap(out)
     out = act(out)
-    #out[0] = hc.bootstrap(out[0]) # 14
     block_in = conv_4_3_shapes
     
     print("avgpool_4")
     avgpool_4_shapes = CascadeMax (block_in, model.module.avgpool_4)
     close = shapeClosure(**avgpool_4_shapes)
     out = pooling(close, out)
-    out[0] = hc.bootstrap(out[0]) # 14 - 33916
+    out = hc.bootstrap(out)
     block_in = avgpool_4_shapes
 
     print("Conv_5_1")        
     conv_5_1_shapes = CascadeConv(block_in, model.module.conv_5_1.Conv2d)
     close = shapeClosure(**conv_5_1_shapes)
     out = HE_ConvBN(close, out, model.module.conv_5_1.Conv2d, model.module.conv_5_1.bn)
-    out[0] = hc.bootstrap(out[0]) # 15 - 36704
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_5_1_shapes
     
@@ -183,7 +179,7 @@ def VGG16 (ctxt) :
     conv_5_2_shapes = CascadeConv(block_in, model.module.conv_5_2.Conv2d)
     close = shapeClosure(**conv_5_2_shapes)
     out = HE_ConvBN(close, out, model.module.conv_5_2.Conv2d, model.module.conv_5_2.bn)
-    out[0] = hc.bootstrap(out[0]) # 16 - 39639
+    out = hc.bootstrap(out)
     out = act(out)
     block_in = conv_5_2_shapes
     
@@ -191,27 +187,26 @@ def VGG16 (ctxt) :
     conv_5_3_shapes = CascadeConv(block_in, model.module.conv_5_3.Conv2d)
     close = shapeClosure(**conv_5_3_shapes)
     out = HE_ConvBN(close, out, model.module.conv_5_3.Conv2d, model.module.conv_5_3.bn)
-    out[0] = hc.bootstrap(out[0]) # 17 - 42574 
+    out = hc.bootstrap(out)
     out = act(out)
-    #out[0] = hc.bootstrap(out[0]) # 
     block_in = conv_5_3_shapes
     
     print("avgpool_5")
     avgpool_5_shapes = CascadeMax (block_in, model.module.avgpool_5)
     close = shapeClosure(**avgpool_5_shapes)
     out = pooling(close, out)
-    out[0] = hc.bootstrap(out[0]) # 18 - 42864
+    out = hc.bootstrap(out)
     block_in = avgpool_5_shapes
     
     print("fc_1")
     out = HE_Linear(close["OP"], out, model.module.fc_1, scale = 32.0)
     
-    out[0] = hc.bootstrap(out[0]) # 19 - 43895
+    out = hc.bootstrap(out)
     out = act(out)
     print("dp_1 & fc_2")
     out = HE_Linear(close["OP"], out, model.module.fc_2, scale=32.0)
     
-    out[0] = hc.bootstrap(out[0]) # 20 - 44561
+    out = hc.bootstrap(out)
     out = act(out)
     print("bn_1")
     #ori, out = debugBN(ori, out, model.module.bn_1, scale=32.0)
