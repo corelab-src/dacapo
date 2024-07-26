@@ -30,6 +30,7 @@ def getModel():
     source_dir = source_path.parent
     model = torch.nn.DataParallel(alexnet())
     model_dict = torch.load(str(source_dir)+"/../data/alexNet_silu_avgpool_model", map_location=torch.device('cpu'))
+    # model_dict = torch.load(str(source_dir)+"/../data/alexNet_relu_maxpool_model", map_location=torch.device('cpu'))
     model.module.load_state_dict(model_dict)
     model = model.eval()
     return model

@@ -30,6 +30,7 @@ def getModel():
     source_dir = source_path.parent
     model = torch.nn.DataParallel(resnet20())
     model_dict = torch.load(str(source_dir)+"/../data/resnet20.silu.model", map_location=torch.device('cpu'))
+    # model_dict = torch.load(str(source_dir)+"/../data/resnet20.relu.model", map_location=torch.device('cpu'))
     model.load_state_dict(model_dict['state_dict'])
     model = model.eval()
     return model

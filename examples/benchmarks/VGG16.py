@@ -31,8 +31,7 @@ def getModel():
     source_dir = source_path.parent
     model = torch.nn.DataParallel(vgg16())
     model_dict = torch.load(str(source_dir)+"/../data/vgg16_silu_avgpool_model", map_location=torch.device('cpu'))
-    # There is no state_dict with checkpoint
-    #model.load_state_dict(model_dict['state_dict'])
+    # model_dict = torch.load(str(source_dir)+"/../data/vgg16_relu_maxpool_model", map_location=torch.device('cpu'))
     model.module.load_state_dict(model_dict)
     model = model.eval()
     return model
@@ -43,6 +42,7 @@ def VGG16 (ctxt) :
 
     model = getModel()
     model = model.type(torch.double)
+    model = model.cpu()
     #input_var = input_var.type(torch.double)
     input_var = np.empty((1), dtype= object)
     input_var[0] = ctxt
@@ -56,6 +56,7 @@ def VGG16 (ctxt) :
         # return HE_Max(close, x) 
     initial_shapes = {
         # Constant
+        # "nt" : 2**14,
         "nt" : 2**16,
         "bb" : 32,
         # Input Characteristics (Cascaded)
