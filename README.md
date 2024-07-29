@@ -132,7 +132,7 @@ hopts dacapo 40 ResNet HEAAN GPU
 ```
 This command will print like this:
 ```
-Estimated Latency: 13.980823 (sec)
+Estimated Latency: 13.860775 (sec)
 Number of Bootstrapping: 19
 ```
 
@@ -146,7 +146,7 @@ hbt dacapo 40 ResNet HEAAN GPU
 ```
 This command will print like this:
 ```
-Estimated Latency: 13.980823 (sec)
+Estimated Latency: 13.860775 (sec)
 Number of Bootstrapping: 19
 ===---------------------------====
   ... Execution Time Report ....
@@ -190,7 +190,7 @@ rms: 0.00095152200605
 ======================================
 ```
 Currently, this compiler only supports code generation and testing for the SEAL version only with ResNet.
-For other benchmarks, compilation with the HEAAN viersion is possible, but program testing is not due to library license. (Ongoing Research)
+For other benchmarks, compilation with the HEAAN version is possible, but program testing is not due to library license. (Ongoing Research)
 
 ## Papers 
 **DaCapo: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption**\
