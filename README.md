@@ -151,15 +151,15 @@ Number of Bootstrapping: 19
 ===---------------------------====
   ... Execution Time Report ....
 ```
-You can see the optimized code in "$hecate-compiler/examples/optimized/dacapo/ResNet.40.earth.mlir"\
+You can see the optimized code in "$hecate-compiler/examples/optimized/dacapo/ResNet.40.earth.mlir"
 
 If you see an error message like "error: 'earth.bootstrap' op failed to infer returned types",\
 just wait as it is in the normal compilation process.
 
 
 ### Test code
-We are currently conducting experiments using a modified version of the HEAAN library.\
-However, due to licensing restrictions, we cannot offer interfaces for testing our compiled code directly with the HEAAN library.\
+We are currently conducting experiments using a modified version of the HEAAN library.
+However, due to licensing restrictions, we cannot offer interfaces for testing our compiled code directly with the HEAAN library.
 Therefore, we kindly ask you to attach a library that supports bootstrapping if you want to test compiled code. 
 
 In addition, we have included the SEAL library, which does not natively support bootstrapping.
@@ -167,8 +167,8 @@ We've provided a wrapper (SEAL\_HEVM.cpp) that modifies the bootstrapping algori
 Please note that while this method allows you to test the results, it is not recommended from a privacy perspective.
 If you want to test with the SEAL library, refer to the example below:
 
-First, need to generate trace code that matches SEAL parameters:
-In /examples/benchmarks/ResNet.py, "nt" : 2**16 ----> "nt" : 2**14
+First, need to generate trace code that matches SEAL parameters: \
+In /examples/benchmarks/ResNet.py, "nt" : 2\*\*16 ----> "nt" : 2\*\*14
 
 ```
 hc-trace ResNet
