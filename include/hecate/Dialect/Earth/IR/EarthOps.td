@@ -277,6 +277,22 @@ def RescaleOp : Unary_Earth_Op<"rescale"> {
 def ModswitchOp : Unary_Earth_Op<"modswitch"> {
   let arguments = (ins HETensor:$value, I64Attr:$downFactor);
   let results = (outs HETensor);
+  code extraClassDeclaration = [{
+    unsigned getLatency();
+  }];
+  code extraClassDefinition = unaryClassDefinition #[{
+    unsigned $cppClass::getLatency(){
+      unsigned lat = 0;
+      int operandLevel = getType().dyn_cast<HEScaleTypeInterface>().getLevel();
+      for ( int i = 0 ; i < getDownFactor(); i++ ){
+        lat += ::hecate::earth::EarthDialect::getLatencyTable()[getOperationName().str()+ (isSingle()? "_single" : "_double")][operandLevel - i];
+      }
+      return lat;
+    }
+
+  }];
+
+
   let hasCanonicalizer = 1;
 }
 def UpscaleOp : Unary_Earth_Op<"upscale"> {
