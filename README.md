@@ -132,7 +132,7 @@ hopts dacapo 40 ResNet HEAAN GPU
 ```
 This command will print like this:
 ```
-Estimated Latency: 13.860775 (sec)
+Estimated Latency: 13.600457 (sec)
 Number of Bootstrapping: 19
 ```
 
@@ -146,7 +146,7 @@ hbt dacapo 40 ResNet HEAAN GPU
 ```
 This command will print like this:
 ```
-Estimated Latency: 13.860775 (sec)
+Estimated Latency: 13.600457 (sec)
 Number of Bootstrapping: 19
 ===---------------------------====
   ... Execution Time Report ....
@@ -221,25 +221,30 @@ Yongwoo Lee, Seonyeong Heo, Seonyoung Cheon, Shinnung Jeong, Changsu Kim, Eunkyu
   doi={10.1109/CGO53902.2022.9741265}}
 ```
 ```bibtex
-@INPROCEEDINGS{lee:elasm:sec,
-  title={{ELASM}: Error-Latency-Aware Scale Management for Fully Homomorphic Encryption},
+@inproceedings{lee2023elasm,
+  title={$\{$ELASM$\}$:$\{$Error-Latency-Aware$\}$ Scale Management for Fully Homomorphic Encryption},
   author={Lee, Yongwoo and Cheon, Seonyoung and Kim, Dongkwan and Lee, Dongyoon and Kim, Hanjun},
-  booktitle={{32nd} USENIX Security Symposium (USENIX Security 23)},
- year={2023},
- address = {Anaheim, CA},
- publisher = {USENIX Association},
- month = aug
+  booktitle={32nd USENIX Security Symposium (USENIX Security 23)},
+  pages={4697--4714},
+  year={2023}
 }
 ```
 ```bibtex
-@INPROCEEDINGS{cheon:dacapo:sec,
-  title={{DaCapo}: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption},
+@inproceedings{cheon2024dacapo,
+  title={$\{$DaCapo$\}$: Automatic Bootstrapping Management for Efficient Fully Homomorphic Encryption},
   author={Cheon, Seonyoung and Lee, Yongwoo and Kim, Dongkwan and Lee, Ju Min and Jung, Sunchul and Kim, Taekyung and Lee, Dongyoon and Kim, Hanjun},
-  booktitle={{33rd} USENIX Security Symposium (USENIX Security 24)},
- year={2024},
- address = {Philadelphia, CA},
- publisher = {USENIX Association},
- month = aug
+  booktitle={33rd USENIX Security Symposium (USENIX Security 24)},
+  pages={6993--7010},
+  year={2024}
+}
+```
+```bibtex
+@inproceedings{lee2024performance,
+  title={Performance-aware scale analysis with reserve for homomorphic encryption},
+  author={Lee, Yongwoo and Cheon, Seonyoung and Kim, Dongkwan and Lee, Dongyoon and Kim, Hanjun},
+  booktitle={Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 1},
+  pages={302--317},
+  year={2024}
 }
 ```
 
