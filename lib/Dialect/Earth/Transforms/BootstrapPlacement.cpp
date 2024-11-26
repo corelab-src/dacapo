@@ -35,12 +35,11 @@ struct BootstrapPlacementPass
     mlir::OpBuilder builder(func);
     mlir::IRRewriter rewriter(builder);
     auto values = hecate::earth::attachOpid(func);
-    auto &ca = getAnalysis<hecate::CandidateAnalysis>();
     auto &&btp_target =
         func->getAttrOfType<mlir::DenseI64ArrayAttr>("btp_target").asArrayRef();
     // Bootstrapping Placement based on btp_targets
     for (auto opid : btp_target) {
-      if (opid == ca.getRetOpid())
+      if (opid == values.size())
         continue;
       auto &&target = values[opid];
       if (target.getType()
