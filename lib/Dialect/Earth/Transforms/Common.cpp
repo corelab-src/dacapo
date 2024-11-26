@@ -166,3 +166,20 @@ hecate::earth::attachOpid(mlir::func::FuncOp func) {
   });
   return values;
 }
+
+int64_t hecate::earth::calcWaterline(hecate::ScaleManagementUnit &smu,
+                                     mlir::Value v, int64_t waterline) {
+  while (smu.getID(v) < 0) {
+    // Backward movement for -1 value because it means scale management
+    // operations or apply_schedule op.
+    if (v.getUses().empty() || !v.getUses().begin().getUser()->getNumResults())
+      return waterline;
+    v = v.getUses().begin().getUser()->getResult(0);
+  }
+  return smu.inNoisyGroup(v) ? waterline + 4 : waterline;
+}
+
+int64_t hecate::earth::calcWaterline(hecate::ScaleManagementUnit &smu,
+                                     mlir::Operation *op, int64_t waterline) {
+  return calcWaterline(smu, op->getResult(0), waterline);
+}

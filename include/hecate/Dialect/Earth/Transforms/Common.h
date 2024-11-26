@@ -22,6 +22,13 @@ void refineReturnValues(mlir::func::FuncOp func, mlir::OpBuilder builder,
 void inferTypeForward(hecate::earth::ForwardMgmtInterface sop);
 
 llvm::SmallVector<mlir::Value, 4> attachOpid(mlir::func::FuncOp func);
+
+// To Calculate the waterline for SNR Rescaling
+int64_t calcWaterline(hecate::ScaleManagementUnit &smu, mlir::Value v,
+                      int64_t waterline);
+int64_t calcWaterline(hecate::ScaleManagementUnit &smu, mlir::Operation *op,
+                      int64_t waterline);
+
 } // namespace earth
 } // namespace hecate
 

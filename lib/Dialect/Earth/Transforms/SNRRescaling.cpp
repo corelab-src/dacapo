@@ -34,18 +34,6 @@ struct SNRRescalingPass
     this->output_val = ops.output_val;
   }
 
-  int64_t calcWaterline(hecate::ScaleManagementUnit &smu, Value v) {
-    while (smu.getID(v) < 0) {
-      // Backward movement for -1 value because it means scale management
-      // operations or apply_schedule op.
-      v = v.getUses().begin().getUser()->getResult(0);
-    }
-    return smu.inNoisyGroup(v) ? waterline + 4 : waterline;
-  }
-  int64_t calcWaterline(hecate::ScaleManagementUnit &smu, Operation *op) {
-    return calcWaterline(smu, op->getResult(0));
-  }
-
   void runOnOperation() override {
 
     auto func = getOperation();
@@ -67,10 +55,12 @@ struct SNRRescalingPass
 
     func.walk([&](hecate::earth::ForwardMgmtInterface sop) {
       builder.setInsertionPoint(sop.getOperation());
-      sop.processOperandsSNR(calcWaterline(smu, sop.getOperation()));
+      sop.processOperandsSNR(
+          hecate::earth::calcWaterline(smu, sop.getOperation(), waterline));
       inferTypeForward(sop);
       builder.setInsertionPointAfter(sop.getOperation());
-      sop.processResultsSNR(calcWaterline(smu, sop.getOperation()));
+      sop.processResultsSNR(
+          hecate::earth::calcWaterline(smu, sop.getOperation(), waterline));
     });
     hecate::earth::refineReturnValues(func, builder, inputTypes, waterline,
                                       output_val);
