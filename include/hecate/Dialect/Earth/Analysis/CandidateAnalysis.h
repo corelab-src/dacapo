@@ -78,6 +78,7 @@ public:
   size_t getNumCandidates() const;
   size_t getNumEdges() const;
   int64_t getRetOpid() const;
+  ScaleManagementUnit getSMU() const;
 
   void setBypassEdges(int64_t from, int64_t OverThr);
   void sortValidCandidates(int64_t opid);

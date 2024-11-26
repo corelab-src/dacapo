@@ -1,4 +1,5 @@
 #include "hecate/Dialect/Earth/Analysis/CandidateAnalysis.h"
+#include "hecate/Dialect/Earth/Analysis/ScaleManagementUnit.h"
 #include "hecate/Dialect/Earth/IR/EarthOps.h"
 #include "hecate/Support/Support.h"
 #include "mlir/IR/BuiltinTypes.h"
@@ -41,6 +42,7 @@ hecate::CandidateAnalysis::CandidateAnalysis(mlir::Operation *op)
     liveOut.push_back(opid);
     std::map<std::pair<int64_t, int64_t>, mlir::OpOperand *> edgeMap;
     for (auto &&user : sop->getUsers()) {
+      // Exclude ten of operations in bootstrap candidates
       if (smu.getID(user) != smu.getID(sop) && opid > 10) {
         values[opid].setLiveOuts(liveOut);
         values[opid].setLiveIns(liveIn);
@@ -59,6 +61,7 @@ size_t hecate::CandidateAnalysis::getNumValues() const { return values.size(); }
 int64_t hecate::CandidateAnalysis::getRetOpid() const { return retOpid; }
 size_t hecate::CandidateAnalysis::getNumEdges() const { return edges.size(); }
 
+ScaleManagementUnit hecate::CandidateAnalysis::getSMU() const { return smu; };
 size_t hecate::CandidateAnalysis::getMaxNumOuts() const {
   size_t ret = 0;
   for (auto a : candidateSet) {
