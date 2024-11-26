@@ -36,9 +36,10 @@ struct BypassDetectionPass
 
   void runOnOperation() override {
 
-    /* llvm::errs() << "Bypass Edge Detection\n"; */
     auto func = getOperation();
     auto &ca = getAnalysis<hecate::CandidateAnalysis>();
+    hecate::ScaleManagementUnit smu =
+        getAnalysis<hecate::ScaleManagementUnit>();
 
     // Applying multi-threading to find bypass edges
     auto maxThreads = std::thread::hardware_concurrency();
@@ -70,6 +71,7 @@ struct BypassDetectionPass
       v->setValidLiveOuts(validTargets);
       ca.sortValidCandidates(a);
     }
+    markAnalysesPreserved<hecate::ScaleManagementUnit>();
     markAnalysesPreserved<hecate::CandidateAnalysis>();
   }
 
@@ -79,7 +81,9 @@ struct BypassDetectionPass
     pm.addNestedPass<func::FuncOp>(hecate::earth::createBootstrapPlacement());
 
     auto &ca = getAnalysis<hecate::CandidateAnalysis>();
+
     auto dup = func.clone();
+    hecate::ScaleManagementUnit smu(dup);
     auto &&block = dup.getBody().front();
     auto &&operations = block.getOperations();
     mlir::OpBuilder builder(dup);

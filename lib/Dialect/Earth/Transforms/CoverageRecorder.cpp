@@ -1,9 +1,11 @@
 
+#include "hecate/Dialect/Earth/Analysis/ScaleManagementUnit.h"
 #include "hecate/Dialect/Earth/IR/EarthOps.h"
 #include "hecate/Dialect/Earth/IR/HEParameterInterface.h"
 #include "hecate/Dialect/Earth/Transforms/Passes.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 
+#include "hecate/Dialect/Earth/Analysis/CandidateAnalysis.h"
 #include "hecate/Dialect/Earth/Transforms/Common.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Transforms/Passes.h"
@@ -38,6 +40,9 @@ struct CoverageRecorderPass
                       .asArrayRef()
                       .front();
 
+    auto &ca = getAnalysis<hecate::CandidateAnalysis>();
+    markAnalysesPreserved<hecate::CandidateAnalysis>();
+    hecate::ScaleManagementUnit smu(dup);
     auto &&block = dup.getBody().front();
     auto &&operations = block.getOperations();
     mlir::OpBuilder builder(dup);
