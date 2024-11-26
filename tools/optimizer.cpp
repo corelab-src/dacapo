@@ -401,6 +401,8 @@ void registerHecatePipeline(cl::opt<std::string> &outputFilename) {
             hecate::earth::createBootstrapPlacement());
         pm.addNestedPass<func::FuncOp>(
             hecate::earth::createProactiveRescaling({waterline, output_val}));
+        /* pm.addNestedPass<func::FuncOp>( */
+        /*     hecate::earth::createSNRRescaling({waterline, output_val})); */
         pm.addNestedPass<func::FuncOp>(hecate::earth::createEarlyModswitch());
         pm.addPass(mlir::createCanonicalizerPass());
         pm.addPass(mlir::createCSEPass());

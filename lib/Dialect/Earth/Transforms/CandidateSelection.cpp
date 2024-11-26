@@ -40,6 +40,8 @@ struct CandidateSelectionPass
     pm.addNestedPass<func::FuncOp>(hecate::earth::createBootstrapPlacement());
     pm.addNestedPass<func::FuncOp>(
         hecate::earth::createProactiveRescaling({waterline, output_val}));
+    /* pm.addNestedPass<func::FuncOp>( */
+    /*     hecate::earth::createSNRRescaling({waterline, output_val})); */
 
     for (size_t i = 1; i < ca.getMaxNumOuts(); i++) {
       auto dup = func.clone();

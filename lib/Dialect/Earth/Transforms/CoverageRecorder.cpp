@@ -71,8 +71,15 @@ struct CoverageRecorderPass
         // PARS Scale Management
         builder.setInsertionPointAfter(sop.getOperation());
         sop.processOperandsPARS(waterline);
+        /* sop.processOperandsSNR( */
+        /*     hecate::earth::calcWaterline(smu, sop.getOperation(),
+         * waterline)); */
         inferTypeForward(sop);
         sop.processResultsPARS(waterline);
+        /* builder.setInsertionPointAfter(sop.getOperation()); */
+        /* sop.processResultsSNR( */
+        /*     hecate::earth::calcWaterline(smu, sop.getOperation(),
+         * waterline)); */
         /////////////////////////////////////////
 
         // Find Bootstrapping Coverage
