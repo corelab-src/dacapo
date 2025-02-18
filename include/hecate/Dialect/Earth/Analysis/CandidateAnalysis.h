@@ -59,6 +59,11 @@ struct CandidateAnalysis {
 public:
   CandidateAnalysis(mlir::Operation *op);
 
+void build();
+void doLiveAnalysis(
+    mlir::Operation *op, mlir::SmallVector<int64_t, 4> &liveIn,
+    mlir::SmallVector<int64_t, 4> &liveOut);
+ 
   // Default Implementation
   int64_t getOpid(mlir::Value v) const;
   int64_t getOpid(mlir::Operation *op) const;
@@ -95,7 +100,7 @@ private:
   llvm::DenseMap<size_t, mlir::SmallVector<int64_t, 4>> candidateSet;
   llvm::DenseMap<std::pair<int64_t, int64_t>, mlir::SmallVector<int64_t, 4>>
       segToBypasses;
-
+ mlir::DenseMap<int64_t, int64_t> idToIdMap;
   llvm::SmallVector<ValueInfo, 4> values;
   int64_t retOpid;
   mlir::Liveness _l;

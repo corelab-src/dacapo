@@ -8,53 +8,77 @@ using namespace hecate;
 
 hecate::CandidateAnalysis::CandidateAnalysis(mlir::Operation *op)
     : _l(op), _op(op), smu(op) {
+  build();
+}
 
+void hecate::CandidateAnalysis::build() {
   llvm::SmallVector<int64_t, 4> liveIn, liveOut;
   smu.attach();
   values.emplace_back(0, nullptr);
   edges.push_back(0);
-  _op->walk([&](hecate::earth::HEScaleOpInterface sop) {
-    if ((llvm::isa<hecate::earth::UpscaleOp>(sop) ||
-         llvm::isa<hecate::earth::RescaleOp>(sop) ||
-         llvm::isa<hecate::earth::BootstrapOp>(sop) ||
-         llvm::isa<hecate::earth::ModswitchOp>(sop))) {
+  auto &&func = dyn_cast<mlir::func::FuncOp>(_op);
+  auto &&bb = func.getBody().getBlocks().front();
+  for (auto iter = bb.begin(); iter != bb.end(); ++iter) {
+    mlir::Operation *op = &*iter;
+    if ((llvm::isa<hecate::earth::UpscaleOp>(op) ||
+         llvm::isa<hecate::earth::RescaleOp>(op) ||
+         llvm::isa<hecate::earth::BootstrapOp>(op) ||
+         llvm::isa<hecate::earth::ModswitchOp>(op))) {
       assert(0 && "Currently not supported");
     }
-    int64_t opid = values.size();
-    for (auto &&val : sop.getOperation()->getResults()) {
-      values.emplace_back(opid, val);
-      hecate::setIntegerAttr("opid", val, opid);
-    }
-    if (!sop.isCipher())
-      return;
-    for (auto &&oper : sop->getOperands()) {
-      if (!hecate::earth::getScaleType(oper).isCipher())
-        continue;
-      if (_l.isDeadAfter(oper, sop)) {
-        auto operID = hecate::getIntegerAttr("opid", oper);
-        auto dead = std::find(liveOut.begin(), liveOut.end(), operID);
-        if (dead != liveOut.end()) {
-          liveOut.erase(dead);
-          values[operID].setDeadOpid(opid);
-        }
-      }
-    }
-    liveOut.push_back(opid);
-    std::map<std::pair<int64_t, int64_t>, mlir::OpOperand *> edgeMap;
-    for (auto &&user : sop->getUsers()) {
-      // Exclude ten of operations in bootstrap candidates
-      if (smu.getID(user) != smu.getID(sop) && opid > 10) {
-        values[opid].setLiveOuts(liveOut);
-        values[opid].setLiveIns(liveIn);
-        edges.push_back(opid);
-        break;
-      }
-    }
-    liveIn = liveOut;
-  });
+    doLiveAnalysis(op, liveIn, liveOut);
+  }
   retOpid = values.size();
   values.emplace_back(retOpid, nullptr);
   toFromMap[0] = {};
+  }
+
+void hecate::CandidateAnalysis::doLiveAnalysis(
+    mlir::Operation *op, mlir::SmallVector<int64_t, 4> &liveIn,
+    mlir::SmallVector<int64_t, 4> &liveOut) {
+  int64_t opid;
+  
+  for (auto &&val : op->getResults()) {
+    opid = values.size();
+    auto &&v = hecate::getIntegerAttr("opid", val);
+    if (v != -1) {
+      idToIdMap[opid] = v;
+    }
+    hecate::setIntegerAttr("opid", val, opid);
+    values.emplace_back(opid, val);
+ }
+
+    if (auto sop = dyn_cast<hecate::earth::HEScaleOpInterface>(op)) {
+      if (!sop.isCipher())
+        return;
+      for (auto &&oper : sop->getOperands()) {
+        if (!hecate::earth::getScaleType(oper).isCipher())
+          continue;
+        if (_l.isDeadAfter(oper, sop)) {
+          auto operID = hecate::getIntegerAttr("opid", oper);
+          auto dead = std::find(liveOut.begin(), liveOut.end(), operID);
+          if (dead != liveOut.end()) {
+            liveOut.erase(dead);
+            values[operID].setDeadOpid(opid);
+          }
+        }
+      }
+
+      for (auto &&val : op->getResults()) {
+        auto &&v = hecate::getIntegerAttr("opid", val);
+        liveOut.push_back(v);
+        for (auto &&user : val.getUsers()) {
+          if (smu.getID(user) != smu.getID(sop)) {
+            values[v].setLiveOuts(liveOut);
+            values[v].setLiveIns(liveIn);
+            edges.push_back(v);
+            break;
+          }
+        }
+        liveIn = liveOut;
+      }
+    }
+    return;
 }
 
 size_t hecate::CandidateAnalysis::getNumValues() const { return values.size(); }
